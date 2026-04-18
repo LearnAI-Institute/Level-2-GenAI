@@ -86,84 +86,71 @@ uvicorn exercise2_age_calculator:app --reload
 
 ---
 
-## Exercise 3: Simple ToDo App
+## Exercise 3: Simple POST - Add a Book
 
 ### Problem
 Create an API that:
-- Has `/todos` GET endpoint that returns all todos
-- Has `/todos` POST endpoint to add a new todo
-- Returns todo data as JSON
+- Has `/books` GET endpoint that returns all books
+- Has `/books` POST endpoint to add a new book (using JSON body)
+- Keep it simple - no validation needed yet
 
 ### Solution
-**File: `exercise3_todo_app.py`**
+**File: `exercise3_add_book.py`**
 
 ```python
 from fastapi import FastAPI
-from pydantic import BaseModel
 
 app = FastAPI()
 
-# Define what a Todo looks like
-class Todo(BaseModel):
-    title: str
-    description: str
-    completed: bool = False
+# Store books in memory
+books = []
 
-# Store todos in memory
-todos = []
-
-@app.get("/todos")
-def get_todos():
-    """Get all todos"""
+@app.get("/books")
+def get_books():
+    """Get all books"""
     return {
-        "todos": todos,
-        "total": len(todos)
+        "books": books,
+        "total": len(books)
     }
 
-@app.post("/todos")
-def create_todo(todo: Todo):
-    """Create a new todo"""
-    todos.append(todo)
+@app.post("/books")
+def add_book(book: dict):
+    """Add a new book"""
+    books.append(book)
     return {
-        "message": "Todo created!",
-        "todo": todo
+        "message": "Book added!",
+        "book": book,
+        "total_books": len(books)
     }
-
-@app.get("/todos/{todo_id}")
-def get_todo(todo_id: int):
-    """Get a specific todo by index"""
-    if 0 <= todo_id < len(todos):
-        return todos[todo_id]
-    return {"error": "Todo not found"}
 ```
 
 ### Test it
 ```bash
-uvicorn exercise3_todo_app:app --reload
+uvicorn exercise3_add_book:app --reload
 # Open: http://localhost:8000/docs
 ```
 
 ### Using the Interactive Docs
-1. Click on `GET /todos`
+1. Click on `GET /books`
 2. Click "Execute" (should return empty list)
-3. Click on `POST /todos`
+3. Click on `POST /books`
 4. Click "Try it out"
-5. Enter:
+5. Enter in the JSON body:
 ```json
 {
-  "title": "Learn FastAPI",
-  "description": "Complete all exercises",
-  "completed": false
+  "title": "Python Basics",
+  "author": "Ali Khan",
+  "pages": 250
 }
 ```
 6. Click "Execute"
-7. Go back to `GET /todos` and check your todos
+7. Go back to `GET /books` and see your book added
 
 ### Expected Responses
-**GET /todos (empty):**
+**GET /books (empty):**
 ```json
 {
-  "todos": [],
+  "books": [],
   "total": 0
 }
 ```
@@ -171,11 +158,11 @@ uvicorn exercise3_todo_app:app --reload
 **After POST:**
 ```json
 {
-  "todos": [
+  "books": [
     {
-      "title": "Learn FastAPI",
-      "description": "Complete all exercises",
-      "completed": false
+      "title": "Python Basics",
+      "author": "Ali Khan",
+      "pages": 250
     }
   ],
   "total": 1
@@ -318,60 +305,94 @@ uvicorn exercise5_math_quiz:app --reload
 
 ---
 
-## Bonus Challenges
+## Bonus Challenges - Beginner Level (No Pydantic Yet)
 
-### Challenge 1: Multiple Operations in One Endpoint
+### Challenge 1: Simple Student Database - GET and POST
 ```python
-@app.get("/calculate/{operation}")
-def calculate(operation: str, a: int, b: int):
-    operations = {
-        "add": a + b,
-        "subtract": a - b,
-        "multiply": a * b,
-    }
-    if operation in operations:
-        return {"result": operations[operation]}
-    return {"error": f"Unknown operation: {operation}"}
+from fastapi import FastAPI
+
+app = FastAPI()
+
+students = []
+
+@app.get("/students")
+def get_all_students():
+    return {"students": students, "count": len(students)}
+
+@app.post("/students")
+def add_student(student: dict):
+    students.append(student)
+    return {"message": "Student added!", "student": student}
+
+@app.get("/students/{student_id}")
+def get_student(student_id: int):
+    if 0 <= student_id < len(students):
+        return students[student_id]
+    return {"error": "Student not found"}
 ```
 
-### Challenge 2: User Registration with Validation
+### Challenge 2: Product Store - GET, POST, DELETE
 ```python
-from pydantic import BaseModel, EmailStr
+from fastapi import FastAPI
 
-class UserSignup(BaseModel):
-    username: str
-    email: str
-    age: int
+app = FastAPI()
 
-@app.post("/register")
-def register(user: UserSignup):
-    if user.age < 18:
-        return {"error": "Must be 18 or older"}
-    return {"message": f"Welcome, {user.username}!"}
-```
-
-### Challenge 3: Product Catalog
-```python
-class Product(BaseModel):
-    name: str
-    price: float
-    stock: int
-
-products_db = [
-    {"id": 1, "name": "Laptop", "price": 999.99, "stock": 5},
-    {"id": 2, "name": "Mouse", "price": 29.99, "stock": 50}
+products = [
+    {"id": 1, "name": "Laptop", "price": 999},
+    {"id": 2, "name": "Mouse", "price": 25}
 ]
 
 @app.get("/products")
 def get_products():
-    return products_db
+    return {"products": products}
 
 @app.get("/products/{product_id}")
 def get_product(product_id: int):
-    for product in products_db:
+    for product in products:
         if product["id"] == product_id:
             return product
     return {"error": "Product not found"}
+
+@app.post("/products")
+def add_product(product: dict):
+    product["id"] = len(products) + 1
+    products.append(product)
+    return {"message": "Product added!", "product": product}
+
+@app.delete("/products/{product_id}")
+def delete_product(product_id: int):
+    global products
+    products = [p for p in products if p["id"] != product_id]
+    return {"message": f"Product {product_id} deleted!"}
+```
+
+### Challenge 3: Blog API - GET all, GET by ID, POST new
+```python
+from fastapi import FastAPI
+
+app = FastAPI()
+
+posts = [
+    {"id": 1, "title": "Learning FastAPI", "content": "Great framework!"},
+    {"id": 2, "title": "Python is fun", "content": "Easy to learn"}
+]
+
+@app.get("/posts")
+def get_all_posts():
+    return {"posts": posts, "total": len(posts)}
+
+@app.get("/posts/{post_id}")
+def get_post(post_id: int):
+    for post in posts:
+        if post["id"] == post_id:
+            return post
+    return {"error": "Post not found"}
+
+@app.post("/posts")
+def create_post(post: dict):
+    post["id"] = len(posts) + 1
+    posts.append(post)
+    return {"message": "Post created!", "post": post}
 ```
 
 ---
@@ -429,22 +450,17 @@ def greet(name: str = "Friend"):
     return {"message": f"Hello {name}"}
 ```
 
-### Mistake 3: Not Using Pydantic for POST Data
+### Mistake 3: Forgetting to Accept JSON Data in POST
 ```python
-# Wrong - doesn't validate
+# Wrong - no parameter to receive data
 @app.post("/users")
-def create(data):
+def create():
     return {"message": "Created"}
 
-# Correct - validates input
-from pydantic import BaseModel
-class User(BaseModel):
-    name: str
-    age: int
-
+# Correct - accepts dictionary from JSON body
 @app.post("/users")
-def create(user: User):
-    return {"message": f"Created {user.name}"}
+def create(user: dict):
+    return {"message": f"Created {user['name']}", "user": user}
 ```
 
 ---
