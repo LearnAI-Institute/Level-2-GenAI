@@ -1,11 +1,12 @@
 # SQLite Basics — A Beginner-Friendly Guide
 
-> Just by reading this guide, you will understand SQLite and basic database operations.
+> Just by reading this guide, you will understand what a database is, why we need one, and how to set up your first SQLite database.
 > Plain English, step by step, with small examples — same style as the Pydantic Basics class.
 
 > **What you should already know:**
 > - FastAPI Basics (GET, POST, lists for storage)
 > - Pydantic Basics (`BaseModel`, validation, type hints)
+> - Pydantic Part 2 (input vs output models, `response_model=`, `model_dump()`)
 
 ---
 
@@ -18,23 +19,20 @@
 5. [Connection and Cursor — the phone call analogy](#5-connection-and-cursor)
 6. [Your first database file](#6-your-first-database-file)
 7. [`CREATE TABLE` — compare with Pydantic models!](#7-create-table)
-8. [`INSERT` — adding rows (like `list.append()`)](#8-insert)
-9. [`SELECT` — reading rows (like a `for` loop)](#9-select)
-10. [`UPDATE` — modifying rows](#10-update)
-11. [`DELETE` — removing rows](#11-delete)
-12. [Why `commit()` matters — the shopping cart story](#12-why-commit-matters)
-13. [Parameterized queries — preventing SQL injection](#13-parameterized-queries)
-14. [Persistence demo — close, reopen, data is still there!](#14-persistence-demo)
-15. [Common mistakes beginners make](#15-common-mistakes)
-16. [Practice exercises](#16-practice-exercises)
-17. [Quick cheat sheet](#17-quick-cheat-sheet)
-18. [What's next? (FastAPI integration teaser)](#18-whats-next)
+8. [The big question — what about INSERT, SELECT, UPDATE, DELETE?](#8-the-big-question)
+9. [The easier way — meet ORMs](#9-the-easier-way--meet-orms)
+10. [Why SQLModel is perfect for us](#10-why-sqlmodel-is-perfect-for-us)
+11. [Side-by-side preview — Raw SQL vs SQLModel](#11-side-by-side-preview)
+12. [Common mistakes (for what you learned today)](#12-common-mistakes)
+13. [Practice exercises](#13-practice-exercises)
+14. [Quick cheat sheet](#14-quick-cheat-sheet)
+15. [What's next?](#15-whats-next)
 
 ---
 
 ## 1. Recap from the Previous Class
 
-In the Pydantic Basics class, we built a clean `Student` model:
+In the Pydantic classes, we built clean models for our API:
 
 ```python
 from pydantic import BaseModel
@@ -45,7 +43,7 @@ class Student(BaseModel):
     is_active: bool = True
 ```
 
-And we used it in FastAPI:
+And we used them in FastAPI:
 
 ```python
 students = []   # 👈 our "database" was just a list
@@ -66,7 +64,7 @@ Listen to a small story 👇
 
 **Story:** Ahmed builds the Student API. He runs `uvicorn main:app --reload`. From `/docs` he adds 5 students. Goes to bed happy. ✨
 
-Next morning, he restarts his laptop. Runs the server again. Opens `/students` ...
+Next morning, he restarts his laptop. Runs the server again. Opens `/students`...
 
 **Empty list. All 5 students gone!** 💀
 
@@ -134,12 +132,14 @@ Looks just like Excel, right? But:
 
 ### What is SQL?
 
-**SQL** = **S**tructured **Q**uery **L**anguage. It's the language we use to talk to a database.
+**SQL** = **S**tructured **Q**uery **L**anguage. It's the language databases speak.
 
 In Python: `students.append(...)`
 In SQL: `INSERT INTO students ...`
 
 Same idea, different syntax.
+
+> 💡 **Good news:** You'll see how the framework writes SQL for us soon — you mostly won't have to write SQL by hand!
 
 ---
 
@@ -325,484 +325,214 @@ print("Table created!")
 
 > **Why UPPERCASE?** SQL keywords are written in CAPS by convention so you can spot them easily. SQL is **not case-sensitive**, so `create table` works too — but `CREATE TABLE` is the standard everyone uses.
 
+✅ **Run the code above. Open the `school.db` file in DB Browser for SQLite — you can SEE the `students` table with all its columns!**
+
 ---
 
-## 8. `INSERT`
+## 8. The Big Question
 
-`INSERT` is the SQL version of `list.append()`.
+You now have:
+- ✅ A database file (`school.db`)
+- ✅ A table inside it (`students`)
+- ✅ Connection and cursor concepts
 
-### Side-by-side:
+**But the table is empty.** How do we add rows? Read them? Update them? Delete them?
 
-```python
-# Python list
-students.append({"name": "Ahmed", "age": 20})
-```
+In raw SQL, you would write four more types of statements:
 
 ```sql
--- SQL INSERT
+INSERT INTO students (name, age) VALUES ('Ahmed', 20);    -- add a row
+SELECT * FROM students;                                    -- read rows
+UPDATE students SET age = 21 WHERE id = 1;                 -- modify a row
+DELETE FROM students WHERE id = 1;                         -- remove a row
+```
+
+Plus you'd need to learn:
+- Parameterized queries (to prevent SQL injection)
+- `commit()` after every change
+- `fetchall()` vs `fetchone()`
+- Handling tuples instead of Python objects
+- ... and dozens more details
+
+**That's a LOT of SQL syntax.** 😰
+
+### Good news: you almost never write this by hand!
+
+In real Python projects (and especially with FastAPI), we use something called an **ORM** that writes SQL **for us**.
+
+Let me show you 👇
+
+---
+
+## 9. The Easier Way — Meet ORMs
+
+> **ORM** = **O**bject **R**elational **M**apper.
+> A library that lets you talk to a database using **Python classes** instead of SQL strings.
+
+### What does that mean?
+
+Instead of writing:
+
+```sql
 INSERT INTO students (name, age) VALUES ('Ahmed', 20);
 ```
 
-### In code:
+You write:
 
 ```python
-import sqlite3
-
-connection = sqlite3.connect("school.db")
-cursor = connection.cursor()
-
-cursor.execute("""
-    INSERT INTO students (name, age, is_active)
-    VALUES ('Ahmed', 20, 1)
-""")
-
-connection.commit()
-connection.close()
-print("Student added!")
+student = Student(name="Ahmed", age=20)
+session.add(student)
+session.commit()
 ```
 
-### Adding multiple students:
+The ORM looks at your code and **writes the SQL for you, automatically**.
 
-```python
-cursor.execute("INSERT INTO students (name, age) VALUES ('Fatima', 19)")
-cursor.execute("INSERT INTO students (name, age) VALUES ('Ali', 21)")
-cursor.execute("INSERT INTO students (name, age) VALUES ('Sara', 22)")
+### Two popular ORMs in Python:
 
-connection.commit()   # commit ONCE at the end is fine
-```
+| ORM | Description |
+|-----|-------------|
+| **SQLAlchemy** | The industry standard. Powerful but verbose. |
+| **SQLModel** ⭐ | Made by the FastAPI author. Built on SQLAlchemy + Pydantic. **Designed for beginners.** |
 
-### Notice:
-
-- We didn't pass `id` — SQLite generates it automatically (because we used `AUTOINCREMENT`).
-- `is_active` was skipped for the last three — they got the default `1` (True).
-- `'Ahmed'` is in **single quotes** — that's how you write strings in SQL.
+### We will use **SQLModel** in our class. ✨
 
 ---
 
-## 9. `SELECT`
+## 10. Why SQLModel is Perfect for Us
 
-`SELECT` reads data from the table — just like a `for` loop reading a Python list.
+SQLModel was created by **Sebastián Ramírez** — the same person who made **FastAPI**. He designed it specifically so that FastAPI students could use databases without learning a brand new tool.
 
-### Get all students:
+### Five reasons it's perfect for our class:
 
-```python
-import sqlite3
+1. **You already know Pydantic** — SQLModel uses **the same syntax** as Pydantic. No new mental model.
+2. **One class = three things** — the same class is your database table, your API schema, and your Python object. No duplicate models!
+3. **No SQL strings to write** — write Python, get database operations.
+4. **Auto validation** — Pydantic-style validation works on every insert.
+5. **Officially recommended by FastAPI** — the FastAPI docs literally show SQLModel as the way to use SQL databases.
 
-connection = sqlite3.connect("school.db")
-cursor = connection.cursor()
-
-cursor.execute("SELECT * FROM students")
-rows = cursor.fetchall()
-
-for row in rows:
-    print(row)
-
-connection.close()
-```
-
-**Output:**
-
-```
-(1, 'Ahmed', 20, 1)
-(2, 'Fatima', 19, 1)
-(3, 'Ali', 21, 1)
-(4, 'Sara', 22, 1)
-```
-
-Each row is a **tuple** in this order: `(id, name, age, is_active)`.
-
-### `SELECT *` vs specific columns:
-
-```sql
-SELECT * FROM students;              -- all columns
-SELECT name, age FROM students;       -- only name and age
-```
-
-### Get one specific student (by ID):
-
-```python
-cursor.execute("SELECT * FROM students WHERE id = 2")
-row = cursor.fetchone()    # only ONE row
-print(row)
-# (2, 'Fatima', 19, 1)
-```
-
-### Filtering with `WHERE`:
-
-```python
-# All active students
-cursor.execute("SELECT * FROM students WHERE is_active = 1")
-
-# Students older than 20
-cursor.execute("SELECT * FROM students WHERE age > 20")
-
-# Students named Ali
-cursor.execute("SELECT * FROM students WHERE name = 'Ali'")
-```
-
-### `fetchall()` vs `fetchone()`:
-
-| Method | Returns | When to use |
-|--------|---------|-------------|
-| `fetchall()` | List of all rows | Many rows expected |
-| `fetchone()` | One row (or `None`) | Looking up a single record |
+> 💡 If you already know Pydantic, you already know **90% of SQLModel**.
 
 ---
 
-## 10. `UPDATE`
+## 11. Side-by-Side Preview
 
-Modify an existing row.
+### Defining a `Student`:
 
-### Side-by-side:
-
-```python
-# Python dict
-students[1]["age"] = 25
-```
-
-```sql
--- SQL UPDATE
-UPDATE students SET age = 25 WHERE id = 2;
-```
-
-### In code:
+**Raw SQL (what you just learned):**
 
 ```python
-import sqlite3
-
-connection = sqlite3.connect("school.db")
-cursor = connection.cursor()
-
-cursor.execute("UPDATE students SET age = 25 WHERE id = 2")
-
-connection.commit()
-connection.close()
-print("Student updated!")
-```
-
-### Updating multiple fields:
-
-```python
-cursor.execute("""
-    UPDATE students
-    SET name = 'Fatima Khan', age = 25
-    WHERE id = 2
-""")
-```
-
-### ⚠️ Big warning — always use `WHERE`!
-
-```sql
-UPDATE students SET age = 30;
-```
-
-This updates **EVERY row** in the table to age 30! 💀
-
-Always include `WHERE` to target specific rows.
-
----
-
-## 11. `DELETE`
-
-Remove rows.
-
-### Side-by-side:
-
-```python
-# Python
-del students[1]
-```
-
-```sql
--- SQL
-DELETE FROM students WHERE id = 2;
-```
-
-### In code:
-
-```python
-cursor.execute("DELETE FROM students WHERE id = 2")
-connection.commit()
-print("Student deleted!")
-```
-
-### Same warning as `UPDATE`:
-
-```sql
-DELETE FROM students;
-```
-
-This deletes **EVERY student!** 💀💀💀
-
-Always use `WHERE` unless you really mean to clear the whole table.
-
----
-
-## 12. Why `commit()` Matters
-
-You may have noticed `connection.commit()` after every change. **What is it?**
-
-### Shopping cart analogy 🛒
-
-When you shop online:
-1. You **add items** to the cart (changes are pending)
-2. Until you click **"Place Order"**, nothing happens
-3. After clicking, the order is **finalized**
-
-In SQLite:
-1. `cursor.execute(...)` adds changes to the cart
-2. Until you `connection.commit()`, nothing is saved
-3. After `commit()`, changes are written to the file
-
-### What happens without `commit()`?
-
-```python
-cursor.execute("INSERT INTO students (name, age) VALUES ('Bilal', 23)")
-connection.close()    # ❌ no commit!
-
-# Reopen the database — Bilal is NOT there!
-```
-
-The change is silently thrown away. 😱
-
-### Rule of thumb:
-
-> **After any `INSERT`, `UPDATE`, or `DELETE` — call `connection.commit()` before closing.**
-
-> `SELECT` does not need `commit()` — it only reads, doesn't change anything.
-
----
-
-## 13. Parameterized Queries
-
-This is **the most important security topic** in databases. Pay attention!
-
-### ❌ The dangerous way (string concatenation):
-
-```python
-name = input("Enter name: ")
-cursor.execute(f"SELECT * FROM students WHERE name = '{name}'")
-```
-
-What if a user types this as their name?
-
-```
-'; DROP TABLE students; --
-```
-
-The final SQL becomes:
-
-```sql
-SELECT * FROM students WHERE name = ''; DROP TABLE students; --'
-```
-
-🔥 **Your entire `students` table is deleted!**
-
-This is called **SQL Injection** — one of the most common security vulnerabilities in the world.
-
-### ✅ The safe way (parameterized queries):
-
-Use `?` as a placeholder, and pass values **separately**:
-
-```python
-name = input("Enter name: ")
-cursor.execute("SELECT * FROM students WHERE name = ?", (name,))
-```
-
-SQLite will safely escape the input — no injection possible. 🛡️
-
-### Examples:
-
-```python
-# Single value
-cursor.execute("SELECT * FROM students WHERE id = ?", (5,))
-
-# Multiple values
-cursor.execute(
-    "INSERT INTO students (name, age) VALUES (?, ?)",
-    ("Ahmed", 20)
-)
-
-# Update with parameters
-cursor.execute(
-    "UPDATE students SET age = ? WHERE id = ?",
-    (25, 2)
-)
-```
-
-> **The tuple is important!** `(5,)` not `(5)`. The trailing comma makes it a tuple.
-
-### The Bobby Tables comic 🎓
-
-There's a famous comic about a kid named "Robert'); DROP TABLE Students;--" whose name destroyed a school's database. Look it up — it makes the point unforgettable.
-
-**Rule:** Never put user input directly into a SQL string. **Always use `?` placeholders.**
-
----
-
-## 14. Persistence Demo
-
-This is where the magic happens. Let's prove the data survives.
-
-### Run this script ONCE:
-
-```python
-# add_data.py
-import sqlite3
-
-connection = sqlite3.connect("school.db")
-cursor = connection.cursor()
-
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS students (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
-        age INTEGER
+        age INTEGER NOT NULL,
+        is_active BOOLEAN DEFAULT 1
     )
 """)
-
-cursor.execute("INSERT INTO students (name, age) VALUES (?, ?)", ("Ahmed", 20))
-cursor.execute("INSERT INTO students (name, age) VALUES (?, ?)", ("Fatima", 19))
-
-connection.commit()
-connection.close()
-print("Data saved! Now close this script.")
 ```
 
-```bash
-python add_data.py
-```
-
-### Now run a DIFFERENT script (later, even after restart):
+**SQLModel (what we'll use):**
 
 ```python
-# read_data.py
-import sqlite3
+from sqlmodel import SQLModel, Field
 
-connection = sqlite3.connect("school.db")
-cursor = connection.cursor()
-
-cursor.execute("SELECT * FROM students")
-for row in cursor.fetchall():
-    print(row)
-
-connection.close()
+class Student(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    name: str
+    age: int
+    is_active: bool = True
 ```
 
-```bash
-python read_data.py
-```
-
-**Output:**
-
-```
-(1, 'Ahmed', 20)
-(2, 'Fatima', 19)
-```
-
-🎉 **The data is still there!**
-
-You can:
-- Restart your laptop
-- Come back next week
-- Send `school.db` to your friend
-- The data persists.
-
-This is the **whole point** of databases.
+> Notice — this looks **just like Pydantic** from the previous class!
+> The only differences:
+> - `SQLModel` instead of `BaseModel`
+> - `table=True` (this tells SQLModel "make this a real database table")
+> - `Field(default=None, primary_key=True)` for the ID
+>
+> **That's it.** One class, and you have a database table.
 
 ---
 
-## 15. Common Mistakes
+### Adding a student:
 
-Beginners make these mistakes — watch out! 🚧
-
-### ❌ Mistake 1: Forgot `commit()`
+**Raw SQL:**
 
 ```python
-cursor.execute("INSERT INTO students (name, age) VALUES ('Bilal', 23)")
-connection.close()    # ❌ data thrown away!
+cursor.execute(
+    "INSERT INTO students (name, age) VALUES (?, ?)",
+    ("Ahmed", 20)
+)
+connection.commit()
+```
+
+**SQLModel:**
+
+```python
+student = Student(name="Ahmed", age=20)
+session.add(student)
+session.commit()
+```
+
+---
+
+### Reading all students:
+
+**Raw SQL:**
+
+```python
+cursor.execute("SELECT * FROM students")
+rows = cursor.fetchall()
+# [(1, 'Ahmed', 20, 1)]   ← ugly tuples, you have to remember the order!
+```
+
+**SQLModel:**
+
+```python
+students = session.exec(select(Student)).all()
+# [Student(id=1, name='Ahmed', age=20, is_active=True)]   ← proper objects!
+print(students[0].name)    # Ahmed   ← dot notation works
+```
+
+---
+
+### The big win:
+
+| | Raw SQL | SQLModel |
+|---|---------|----------|
+| SQL strings to write | Many | None |
+| Validation | Manual | Automatic |
+| Return type | Tuples | Python objects |
+| IDE autocomplete | ❌ | ✅ |
+| Pydantic features | Lost | Built-in |
+| Lines of code | Many | Few |
+
+---
+
+## 12. Common Mistakes
+
+These are the mistakes that can happen with what you learned today (connection + CREATE TABLE):
+
+### ❌ Mistake 1: Forgot `commit()` after `CREATE TABLE`
+
+```python
+cursor.execute("CREATE TABLE ...")
+connection.close()    # ❌ table NOT saved!
 ```
 
 ✅ **Correct:**
 
 ```python
-cursor.execute("INSERT INTO students (name, age) VALUES ('Bilal', 23)")
+cursor.execute("CREATE TABLE ...")
 connection.commit()    # ✅ save first
 connection.close()
 ```
 
 ---
 
-### ❌ Mistake 2: String concatenation (security!)
+### ❌ Mistake 2: Calling `CREATE TABLE` without `IF NOT EXISTS`
 
 ```python
-cursor.execute(f"SELECT * FROM students WHERE name = '{name}'")    # ❌ SQL injection!
-```
-
-✅ **Correct:**
-
-```python
-cursor.execute("SELECT * FROM students WHERE name = ?", (name,))    # ✅ safe
-```
-
----
-
-### ❌ Mistake 3: `UPDATE`/`DELETE` without `WHERE`
-
-```sql
-UPDATE students SET age = 30;     -- ❌ updates EVERY row
-DELETE FROM students;             -- ❌ deletes EVERY row
-```
-
-✅ **Correct:**
-
-```sql
-UPDATE students SET age = 30 WHERE id = 5;
-DELETE FROM students WHERE id = 5;
-```
-
----
-
-### ❌ Mistake 4: Forgot the trailing comma in single-value tuples
-
-```python
-cursor.execute("SELECT * FROM students WHERE id = ?", (5))    # ❌ this is just int 5
-```
-
-✅ **Correct:**
-
-```python
-cursor.execute("SELECT * FROM students WHERE id = ?", (5,))    # ✅ tuple of one item
-```
-
----
-
-### ❌ Mistake 5: Forgot to close the connection
-
-```python
-connection = sqlite3.connect("school.db")
-# ... work ...
-# ❌ never closed
-```
-
-✅ **Correct:**
-
-```python
-connection = sqlite3.connect("school.db")
-try:
-    # ... work ...
-finally:
-    connection.close()    # ✅ always close
-```
-
-> Or use `with` statement (Python's auto-cleanup) — we'll learn that later.
-
----
-
-### ❌ Mistake 6: Calling `CREATE TABLE` without `IF NOT EXISTS`
-
-```python
-cursor.execute("CREATE TABLE students (...)")   # ❌ crashes on second run
+cursor.execute("CREATE TABLE students (...)")    # ❌ crashes on second run!
 ```
 
 ✅ **Correct:**
@@ -813,166 +543,180 @@ cursor.execute("CREATE TABLE IF NOT EXISTS students (...)")    # ✅ safe to run
 
 ---
 
-## 16. Practice Exercises
+### ❌ Mistake 3: Forgetting to close the connection
+
+```python
+connection = sqlite3.connect("school.db")
+# ... work ...
+# ❌ never closed — file may stay locked
+```
+
+✅ **Correct:**
+
+```python
+connection = sqlite3.connect("school.db")
+# ... work ...
+connection.close()    # ✅ always close
+```
+
+---
+
+### ❌ Mistake 4: Forgetting that `sqlite3` is built-in
+
+Beginners often try:
+
+```bash
+pip install sqlite3   # ❌ not needed (and gives errors)
+```
+
+✅ **Correct:**
+
+`sqlite3` is **already inside Python**. Just `import sqlite3` and use it. No install needed.
+
+---
+
+## 13. Practice Exercises
 
 Now get your hands dirty 👨‍💻
 
-### Exercise 1: Create a `books` table
-Create a table with:
+### Exercise 1: Create the database
+Write a script that creates a `school.db` file and prints "Database created!" — confirm the file appears in your folder.
+
+### Exercise 2: Create a `books` table
+Add a `books` table with these columns:
 - `id` (auto-generated)
 - `title` (text, required)
 - `author` (text, required)
 - `pages` (integer)
 - `is_published` (boolean, default True)
 
-### Exercise 2: Insert 5 books
-Use parameterized queries (`?`) to insert 5 different books.
+### Exercise 3: Open in DB Browser
+Download [DB Browser for SQLite](https://sqlitebrowser.org/). Open your `school.db` file. You should see your `students` and `books` tables — with all the columns you defined!
 
-### Exercise 3: Read all books
-Print every book's title and author.
+### Exercise 4: Compare with Pydantic
+Take any Pydantic model you wrote in the previous class (e.g., `Product` or `Teacher`). Write the equivalent `CREATE TABLE` statement for it.
 
-### Exercise 4: Filter
-Find all books with more than 200 pages.
+### Exercise 5: Multiple tables in one file
+In a single `setup_db.py` script, create three tables: `students`, `books`, and `teachers`. Run the script. Open `school.db` in DB Browser — verify all three tables are there.
 
-### Exercise 5: Update
-Change the title of book ID 2 to "Updated Title".
-
-### Exercise 6: Delete
-Delete the book with ID 3.
-
-### Exercise 7: Persistence test
-Run your insert script, close everything, restart your laptop. Run a SELECT script — your books should still be there!
-
-### Exercise 8: Security challenge 🛡️
-Write an `add_book(title, author)` function that takes user input and inserts safely (using `?`).
+> 💡 We are **not** doing INSERT/SELECT/UPDATE/DELETE practice here — because in the next class, we will do all of that with **SQLModel**, which is much easier!
 
 ---
 
-## 17. Quick Cheat Sheet
+## 14. Quick Cheat Sheet
 
 ```python
 import sqlite3
 
-# Connect
+# Connect (creates file if missing)
 connection = sqlite3.connect("school.db")
 cursor = connection.cursor()
 
-# Create
+# Define a table
 cursor.execute("""
     CREATE TABLE IF NOT EXISTS students (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
-        age INTEGER
+        age INTEGER,
+        is_active BOOLEAN DEFAULT 1
     )
 """)
 
-# Insert (use ? for safety)
-cursor.execute(
-    "INSERT INTO students (name, age) VALUES (?, ?)",
-    ("Ahmed", 20)
-)
-
-# Select all
-cursor.execute("SELECT * FROM students")
-rows = cursor.fetchall()
-
-# Select one
-cursor.execute("SELECT * FROM students WHERE id = ?", (1,))
-row = cursor.fetchone()
-
-# Update
-cursor.execute(
-    "UPDATE students SET age = ? WHERE id = ?",
-    (25, 1)
-)
-
-# Delete
-cursor.execute("DELETE FROM students WHERE id = ?", (1,))
-
-# Save and close
+# Save changes and close
 connection.commit()
 connection.close()
 ```
 
-### SQL keywords summary:
+### SQL keywords you saw today:
 
 | Keyword | Job |
 |---------|-----|
 | `CREATE TABLE` | Make a new table |
-| `INSERT INTO ... VALUES` | Add a new row |
-| `SELECT ... FROM` | Read rows |
-| `WHERE` | Filter rows |
-| `UPDATE ... SET` | Modify rows |
-| `DELETE FROM` | Remove rows |
-| `PRIMARY KEY` | Unique identifier |
+| `IF NOT EXISTS` | Don't crash if table is already there |
+| `PRIMARY KEY` | Unique identifier for each row |
 | `AUTOINCREMENT` | Auto-generate IDs |
 | `NOT NULL` | Field is required |
 | `DEFAULT` | Set a default value |
 
+### Common SQLite data types:
+
+| Type | Used for |
+|------|----------|
+| `TEXT` | Strings |
+| `INTEGER` | Whole numbers |
+| `REAL` | Decimal numbers |
+| `BOOLEAN` | True/False (stored as 0/1) |
+
 ---
 
-## 🎯 Summary — What Did You Learn Today?
+## 🎯 Summary — What You Learned Today
 
 ✅ Why lists are not enough — data dies on restart
 ✅ Database = smart Excel sheet on disk
 ✅ SQLite = file-based database, built into Python
 ✅ Connection (phone line) and Cursor (the worker)
-✅ `CREATE TABLE` — define the shape (like Pydantic, but on disk)
-✅ `INSERT`, `SELECT`, `UPDATE`, `DELETE` — full CRUD
-✅ `commit()` saves your changes (like checkout)
-✅ Parameterized queries (`?`) prevent SQL injection
-✅ Data persists across restarts
-✅ Common mistakes and how to avoid them
+✅ Creating a database file is just one line of code
+✅ `CREATE TABLE` defines the shape (just like a Pydantic model)
+✅ We **don't** have to write all the other SQL queries by hand
+✅ Frameworks use **ORMs** that write SQL for us
+✅ We will use **SQLModel** — built by the FastAPI author for FastAPI users
 
 ---
 
-## 18. What's Next?
+## 15. What's Next?
 
-**Right now**, you can talk to a database from a regular Python script.
-**But your FastAPI endpoints still use lists!**
+You are now standing at an important point in your learning journey. Here's exactly where you are and what's coming up:
 
-In the **next class**, we'll connect them:
+### 🗺️ Upcoming Classes Roadmap
 
-```python
-# Imagine this:
-@app.post("/students")
-def add_student(student: StudentCreate):
-    cursor.execute(
-        "INSERT INTO students (name, age) VALUES (?, ?)",
-        (student.name, student.age)
-    )
-    connection.commit()
-    return {"message": "Saved to database!"}
-
-@app.get("/students")
-def get_students():
-    cursor.execute("SELECT * FROM students")
-    return cursor.fetchall()
-```
-
-🚀 **Imagine** — every POST goes straight into the database file. Restart the server, your data is still there!
-
-### And after that?
-
-Writing raw SQL strings everywhere is repetitive and error-prone. There's a cleaner way: **SQLAlchemy ORM**.
-
-With SQLAlchemy, you'll write:
-
-```python
-new_student = Student(name="Ahmed", age=20)
-session.add(new_student)
-session.commit()
-```
-
-No SQL strings. Just Python objects. We'll cover that in a later class.
+| | Class | What you'll learn | When |
+|---|---|---|---|
+| ✅ | **SQLite Basics** | Why databases, `CREATE TABLE`, file-based storage | **This class — done!** |
+| 🆕 | **SQLModel** | Replace raw SQL with Python classes. Insert, read, update, delete — all without SQL strings. | **Next class** |
+| 🔜 | **SQLModel + FastAPI Integration** | Connect SQLModel to your FastAPI endpoints. Your `/students` POST will actually save data to the database! | **Class after that** |
 
 ---
 
-**Remember:** Lists die. Files persist. Databases are organized files with superpowers. 💪
+### Next class — SQLModel:
+
+You'll learn:
+- How to install SQLModel
+- How `class Student(SQLModel, table=True)` becomes a real database table
+- `session.add(student)` — adding rows the easy way
+- `session.exec(select(Student))` — reading rows the easy way
+- Updating and deleting — without SQL strings
+
+### Class after that — SQLModel + FastAPI:
+
+This is where **everything comes together**! You'll learn:
+- How to wire SQLModel into your FastAPI app
+- How a POST endpoint saves data to the database (not a list anymore!)
+- How a GET endpoint reads real records from the database
+- How `response_model=` (from Pydantic Part 2) combines beautifully with SQLModel
+- Restart the server — your data is **still there** 🎉
+
+> 💡 By the end of these two classes, you will have a **real, production-style API** that stores data permanently — using just Python classes, no SQL strings!
+
+### What if I'm curious about raw SQL anyway?
+
+We've kept a full **raw SQL reference** in this folder:
+
+📚 **[RAW_SQL_REFERENCE.md](RAW_SQL_REFERENCE.md)** — full guide to `INSERT`, `SELECT`, `UPDATE`, `DELETE`, parameterized queries, security, persistence demos, and more.
+
+> ⚠️ **You don't need to read it for class.** But it's there if you're curious, want to understand what SQLModel does under the hood, or are preparing for a job interview that asks about SQL.
+
+---
+
+**Remember:** Lists die. Files persist. Databases are organized files with superpowers. And **ORMs save you from writing SQL by hand**. 💪
 
 ```python
+# Today:
 import sqlite3
-connection = sqlite3.connect("school.db")    # 👈 your forever home for data
+sqlite3.connect("school.db")    # 👈 first step — make the database file
+
+# Next class:
+class Student(SQLModel, table=True):    # 👈 next step — define tables as Python classes
+    ...
 ```
 
 **Happy Coding! 🚀**
