@@ -1,124 +1,83 @@
-# SQLModel Basics — A Beginner-Friendly Guide
+# SQLModel + FastAPI — A Beginner-Friendly Guide
 
-> Just by reading this guide, you will understand how to use SQLModel to talk to a database **without writing SQL queries**.
-> Plain English, step by step, with small examples — same style as the previous classes.
+> Just by reading this guide, you will build a **real, working API** that saves data to a database — using only Python classes.
+> Same beginner-friendly style as all previous classes. We will test **everything** in `/docs` (Swagger UI), exactly like you did in the Pydantic class.
 
 > **What you should already know:**
-> - FastAPI Basics (GET, POST)
-> - Pydantic Basics (`BaseModel`, type hints, validation, `Field()`)
-> - Pydantic Part 2 (input vs output models, `model_dump()`, nested models)
-> - SQLite Basics (what a database is, connection, `CREATE TABLE`)
-
-> ⚠️ **This class is pure SQLModel — no FastAPI yet.** We'll combine them in the **next** class.
+> - FastAPI Basics (GET, POST, `/docs`)
+> - Pydantic Basics (`BaseModel`, `Field()`, type hints)
+> - Pydantic Part 2 (`response_model=`, `StudentCreate` vs `StudentResponse`)
+> - SQLite Basics (what a database is, `CREATE TABLE`)
 
 ---
 
 ## Table of Contents
 
-1. [Recap — where we left off](#1-recap--where-we-left-off)
-2. [The pain we are about to remove](#2-the-pain-we-are-about-to-remove)
-3. [What is SQLModel?](#3-what-is-sqlmodel)
+1. [Recap — what you already know](#1-recap)
+2. [The mission — bring everything together](#2-the-mission)
+3. [What is SQLModel? (one paragraph)](#3-what-is-sqlmodel)
 4. [Installation](#4-installation)
-5. [Your first SQLModel — and the "wow" moment](#5-your-first-sqlmodel)
-6. [Three new words you'll see: Engine, Session, `select`](#6-three-new-words)
-7. [Creating the database and tables](#7-creating-the-database-and-tables)
-8. [INSERT — adding rows the easy way](#8-insert--adding-rows-the-easy-way)
-9. [`session.refresh()` — getting the auto-generated ID](#9-sessionrefresh)
-10. [SELECT — reading all rows](#10-select--reading-all-rows)
-11. [SELECT one — `.first()`, `.one()`](#11-select-one--first-one)
-12. [Filtering with `.where()`](#12-filtering-with-where)
-13. [UPDATE — just change the object](#13-update--just-change-the-object)
-14. [DELETE — remove a row](#14-delete--remove-a-row)
-15. [The `with` statement — clean session management](#15-the-with-statement)
-16. [`Field()` extras — `index`, `unique`, `default`, `nullable`](#16-field-extras)
-17. [The complete picture — a full CRUD script](#17-the-complete-picture)
-18. [Why SQLModel beats raw SQL — final summary](#18-why-sqlmodel-beats-raw-sql)
-19. [Common mistakes](#19-common-mistakes)
-20. [Practice exercises](#20-practice-exercises)
-21. [Quick cheat sheet](#21-quick-cheat-sheet)
-22. [What's next?](#22-whats-next)
+5. [Step 1 — Define the SQLModel class](#5-step-1--define-the-sqlmodel-class)
+6. [Step 2 — Set up the FastAPI app](#6-step-2--set-up-the-fastapi-app)
+7. [Step 3 — The `get_session()` helper](#7-step-3--the-get_session-helper)
+8. [POST `/students` — your first database insert!](#8-post-students)
+9. [GET `/students` — list all students](#9-get-students)
+10. [GET `/students/{id}` — get one student](#10-get-studentsid)
+11. [PUT `/students/{id}` — update a student](#11-put-studentsid)
+12. [DELETE `/students/{id}` — remove a student](#12-delete-studentsid)
+13. [The magic moment — restart the server!](#13-the-magic-moment)
+14. [Full example — `main.py` from start to finish](#14-full-example)
+15. [Try it yourself — Teacher model](#15-try-it-yourself--teacher-model)
+16. [Bonus example — Book model](#16-bonus-example--book-model)
+17. [Common mistakes](#17-common-mistakes)
+18. [Practice exercises](#18-practice-exercises)
+19. [Quick cheat sheet](#19-quick-cheat-sheet)
+20. [What's next?](#20-whats-next)
 
 ---
 
-## 1. Recap — Where We Left Off
+## 1. Recap
 
-In **SQLite Basics**, you learned:
-- Why lists are not enough — data dies on restart
-- A database is like a smart Excel sheet on disk
-- SQLite = file-based database, built into Python
-- How to write `CREATE TABLE` in raw SQL
+Look at how much you've learned. Each class added one new piece:
 
-In **Pydantic Basics + Part 2**, you learned:
-- `BaseModel` and type hints
-- Input vs output models (`StudentCreate`, `StudentResponse`)
-- `response_model=`, `model_dump()`, nested models
+| Class | What you learned |
+|-------|------------------|
+| FastAPI Basics | GET, POST, `/docs` testing |
+| Pydantic Basics | `BaseModel`, types, validation |
+| Pydantic Part 2 | `response_model=`, input vs output |
+| SQLite Basics | What a database is, `CREATE TABLE` |
 
-**Now we combine the two worlds** — Pydantic-style models that are ALSO database tables.
+**Today, all four come together.** 🎉
 
 ---
 
-## 2. The Pain We Are About to Remove
+## 2. The Mission
 
-**Story:** Ahmed wants to add 3 students to his database. He starts writing:
+Remember the problem from SQLite Basics?
 
-```python
-import sqlite3
+- You **created** a `school.db` file ✅
+- You **made** a `students` table ✅
+- But the table was **empty** ❌
+- And we said: *"we won't write INSERT/SELECT/UPDATE/DELETE by hand — we'll use SQLModel"*
 
-connection = sqlite3.connect("school.db")
-cursor = connection.cursor()
+**Today is that day.** We will:
 
-cursor.execute("CREATE TABLE IF NOT EXISTS students (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, age INTEGER NOT NULL)")
-
-cursor.execute("INSERT INTO students (name, age) VALUES (?, ?)", ("Ahmed", 20))
-cursor.execute("INSERT INTO students (name, age) VALUES (?, ?)", ("Fatima", 19))
-cursor.execute("INSERT INTO students (name, age) VALUES (?, ?)", ("Sara", 22))
-
-cursor.execute("SELECT * FROM students")
-rows = cursor.fetchall()
-for row in rows:
-    # row is a tuple: (id, name, age)
-    # I have to remember the order!
-    print(f"id={row[0]}, name={row[1]}, age={row[2]}")
-
-connection.commit()
-connection.close()
-```
-
-Then Sara walks in. 👀
-
-> **Sara:** "You're still writing raw SQL? Bro, just use SQLModel."
->
-> **Ahmed:** "What's that?"
->
-> **Sara:** "It lets you write your tables as Python classes. No SQL strings. And it returns proper objects, not tuples. You'll never go back."
-
-😏 Let's see what Sara is talking about.
+1. Replace `CREATE TABLE` SQL with a **Python class** (SQLModel)
+2. Build **5 FastAPI endpoints** for full CRUD
+3. Test **everything in `/docs`** — just like the Pydantic class
+4. Restart the server — and our data **stays!** 🎉
 
 ---
 
 ## 3. What is SQLModel?
 
-> **SQLModel = Pydantic + SQLAlchemy fused together.**
-> One class becomes your **database table**, your **API schema**, and your **Python object** — all at the same time.
+> **SQLModel** is a library that lets you define your database tables as **Python classes** — using the same syntax as Pydantic.
+>
+> One class = your database table + your API schema + your Python object.
 
-### Who built it?
+Made by **Sebastián Ramírez** (the same person who built FastAPI). Designed so that students who know Pydantic can use databases instantly.
 
-**Sebastián Ramírez** — the same person who built FastAPI. He built SQLModel specifically so FastAPI students could use databases without learning a brand-new tool.
-
-### What does it do for us?
-
-| Job | Without SQLModel | With SQLModel |
-|-----|------------------|---------------|
-| Define a table | Write `CREATE TABLE` SQL | Write a Python class |
-| Insert a row | Write `INSERT INTO ...` | `session.add(obj)` |
-| Read rows | Write `SELECT ...` | `session.exec(select(Model))` |
-| Get a Python object | Manually map tuples | Already an object! |
-| Validate data | Manual checks | Automatic (Pydantic) |
-| Get IDE autocomplete | ❌ | ✅ |
-
-### The key insight:
-
-> **If you know Pydantic, you already know 90% of SQLModel.**
+If you know Pydantic — you already know **90% of SQLModel**.
 
 ---
 
@@ -130,36 +89,21 @@ Open your terminal:
 pip install sqlmodel
 ```
 
-That's it. SQLModel comes with **SQLAlchemy + Pydantic** bundled inside it — you don't install them separately.
+That's it. SQLModel includes everything you need (FastAPI users may already have it).
 
-To confirm:
+Verify:
 
 ```bash
-python -c "import sqlmodel; print(sqlmodel.__version__)"
+python -c "import sqlmodel; print('SQLModel installed!')"
 ```
 
-You should see a version like `0.0.x`.
-
-> 💡 SQLModel uses `sqlite3` under the hood — no extra database setup. The same `.db` file you'd make with raw SQLite is what SQLModel will use.
+> 💡 You **don't** need `pip install sqlite3` — that's already in Python.
 
 ---
 
-## 5. Your First SQLModel
+## 5. Step 1 — Define the SQLModel Class
 
-Compare these two side by side. Slowly.
-
-### Pydantic model (from previous classes):
-
-```python
-from pydantic import BaseModel
-
-class Student(BaseModel):
-    name: str
-    age: int
-    is_active: bool = True
-```
-
-### SQLModel — the SAME class but now it's also a database table:
+Create a new file `main.py`. Start with just the model:
 
 ```python
 from sqlmodel import SQLModel, Field
@@ -171,670 +115,639 @@ class Student(SQLModel, table=True):
     is_active: bool = True
 ```
 
-### What changed? Only 3 things:
+### Look at this side by side with what you know:
 
-| Change | Pydantic | SQLModel |
-|--------|----------|----------|
-| Base class | `BaseModel` | `SQLModel` |
-| Decorator/argument | (nothing) | `table=True` |
-| ID field | (none usually) | `id: int \| None = Field(default=None, primary_key=True)` |
+**Pydantic (from previous classes):**
 
-That's it. **Everything else is identical** to a Pydantic model.
+```python
+class Student(BaseModel):
+    name: str
+    age: int
+    is_active: bool = True
+```
+
+**SQLModel (now):**
+
+```python
+class Student(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    name: str
+    age: int
+    is_active: bool = True
+```
+
+### What's different?
+
+Only **three** things:
+
+1. `BaseModel` → `SQLModel`
+2. Add `table=True` (this tells SQLModel: "make this a real database table!")
+3. Add `id: int | None = Field(default=None, primary_key=True)` (the auto-generated ID)
+
+**Everything else is identical to Pydantic.** ✨
 
 ### Why `id: int | None`?
 
-Before you insert a student, the database hasn't assigned an ID yet — so it's `None`. After insertion, the database fills it in.
+Before you insert a student, the database hasn't given an ID yet — so it's `None`.
+After insert, the database fills it in.
 
-This is why the type is `int | None` with `default=None`.
-
-### Why `table=True`?
-
-This argument tells SQLModel: *"This is not just a Pydantic model — also make it a real database table."*
-
-If you forget `table=True`, you get a normal Pydantic model only. **No table is created.** This is a common confusion.
-
-### The "wow" moment:
-
-Same Python knowledge you used for Pydantic — but now this object can be **saved to a database**, **fetched back**, **updated**, **deleted**. Without writing any SQL. ✨
+That's why the type is `int | None` with `default=None`.
 
 ---
 
-## 6. Three New Words
+## 6. Step 2 — Set Up the FastAPI App
 
-To use SQLModel you'll meet 3 new words. Don't worry — each one has a simple job.
-
-### 1. **Engine** — the database "factory"
-
-Think of the **engine** as the **address** of your database. It says: *"Here is where the database lives."*
+Add to `main.py`:
 
 ```python
-from sqlmodel import create_engine
-
-engine = create_engine("sqlite:///school.db")
-```
-
-- `"sqlite:///school.db"` means: "SQLite database in the file `school.db`"
-- You create the engine **once** in your whole program
-
-### 2. **Session** — your conversation with the database
-
-Think of the **session** as **one conversation** with the database. You open it, do some work, then close it.
-
-```python
-from sqlmodel import Session
-
-with Session(engine) as session:
-    # do some work here
-    ...
-```
-
-> If a session is a phone call, then `engine` is the phone number you dial.
-
-### 3. **`select`** — building queries
-
-When you want to read rows, you use the `select()` function:
-
-```python
-from sqlmodel import select
-
-statement = select(Student)              # "SELECT * FROM students"
-students = session.exec(statement).all() # actually run it
-```
-
-> Think of `select(Student)` as Python's way of writing `SELECT * FROM students` — but type-safe, with autocomplete.
-
----
-
-## 7. Creating the Database and Tables
-
-Here's a minimal script. Put this in `db_setup.py`:
-
-```python
+from fastapi import FastAPI
 from sqlmodel import SQLModel, Field, create_engine
 
-# Step 1: Define the model
+# Your model from Step 1
 class Student(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     name: str
     age: int
     is_active: bool = True
 
-# Step 2: Set up the engine
-engine = create_engine("sqlite:///school.db", echo=True)
-
-# Step 3: Create ALL tables
-SQLModel.metadata.create_all(engine)
-```
-
-Run it:
-
-```bash
-python db_setup.py
-```
-
-### What just happened?
-
-1. SQLModel looked at every class that inherits from `SQLModel` with `table=True`.
-2. For each one, it generated a proper `CREATE TABLE IF NOT EXISTS ...` SQL statement.
-3. It executed those statements on your database (`school.db`).
-
-✅ Open `school.db` in DB Browser for SQLite — you'll see the `student` table with `id`, `name`, `age`, `is_active`.
-
-### What is `echo=True`?
-
-It makes SQLModel **print** the SQL it generates. While learning, keep it on — you'll see *exactly* what SQL each Python operation produces. Once you're comfortable, set `echo=False`.
-
-> 💡 **Tip:** With `echo=True`, you can verify: yes, my Python code did write the right SQL. This builds trust.
-
----
-
-## 8. INSERT — Adding Rows the Easy Way
-
-Here's the entire process of adding a student:
-
-```python
-from sqlmodel import Session
-
-with Session(engine) as session:
-    student = Student(name="Ahmed", age=20)
-    session.add(student)
-    session.commit()
-```
-
-### Compare to raw SQL:
-
-```python
-# RAW SQL (what you're leaving behind)
-cursor.execute("INSERT INTO students (name, age) VALUES (?, ?)", ("Ahmed", 20))
-connection.commit()
-```
-
-### Walking through each line:
-
-1. `with Session(engine) as session:` — open a conversation with the database.
-2. `student = Student(name="Ahmed", age=20)` — create a Python object (Pydantic validates the types).
-3. `session.add(student)` — tell the session: "I want to save this."
-4. `session.commit()` — write it to disk.
-
-Notice how `id` was not provided — the database auto-generates it.
-
-### Adding multiple students:
-
-```python
-with Session(engine) as session:
-    session.add(Student(name="Ahmed", age=20))
-    session.add(Student(name="Fatima", age=19))
-    session.add(Student(name="Sara", age=22))
-    session.commit()    # one commit saves them all
-```
-
-### Validation works automatically:
-
-```python
-student = Student(name="Ali", age="twenty")    # ❌ age is not int!
-# pydantic.ValidationError: Input should be a valid integer
-```
-
-The same Pydantic validation you know from previous classes — it works **before** the data ever reaches the database.
-
----
-
-## 9. `session.refresh()`
-
-After `session.commit()`, the database assigns an ID to your new row. But your Python object **doesn't know about it yet** — unless you ask.
-
-```python
-with Session(engine) as session:
-    student = Student(name="Ahmed", age=20)
-    session.add(student)
-    session.commit()
-
-    print(student.id)        # ❓ might be None or raise error
-    session.refresh(student) # 👈 reloads the object from DB
-    print(student.id)        # ✅ 1 (or whatever ID was assigned)
-```
-
-### When do you need `refresh()`?
-
-You need it whenever you want to **read fields that the database fills in for you**:
-- `id` (auto-generated)
-- `created_at` (if you add a default timestamp)
-- `is_active` (if you only relied on the database default)
-
-### Typical pattern:
-
-```python
-def create_student(name: str, age: int):
-    with Session(engine) as session:
-        student = Student(name=name, age=age)
-        session.add(student)
-        session.commit()
-        session.refresh(student)    # 👈 important!
-        return student               # now this has its full id
-```
-
-> 💡 In our next class (FastAPI integration), we'll always `refresh()` before returning a student from a POST endpoint — so the response includes the generated `id`.
-
----
-
-## 10. SELECT — Reading All Rows
-
-The function for queries is `select`. Here's reading all students:
-
-```python
-from sqlmodel import select
-
-with Session(engine) as session:
-    statement = select(Student)
-    students = session.exec(statement).all()
-
-    for s in students:
-        print(s.id, s.name, s.age)
-```
-
-### Compare to raw SQL:
-
-```python
-# RAW SQL
-cursor.execute("SELECT * FROM students")
-rows = cursor.fetchall()
-for row in rows:
-    print(row[0], row[1], row[2])   # ❌ have to know column order
-```
-
-### The huge advantage:
-
-`session.exec(...).all()` returns a **list of `Student` objects** — not tuples.
-
-```python
-students[0].name        # ✅ dot notation
-students[0].is_active   # ✅ Pydantic validation, IDE autocomplete
-```
-
-### Shortcut — one-liner:
-
-```python
-students = session.exec(select(Student)).all()
-```
-
-You'll see this style a lot in real code.
-
----
-
-## 11. SELECT One — `.first()`, `.one()`
-
-What if you want a **single** student, not a list?
-
-### `.first()` — gives you the first match, or `None`
-
-```python
-with Session(engine) as session:
-    statement = select(Student).where(Student.id == 1)
-    student = session.exec(statement).first()
-
-    if student:
-        print(student.name)
-    else:
-        print("Not found")
-```
-
-Use `.first()` when:
-- You expect one result, OR
-- The row may not exist (and you want to handle that)
-
-### `.one()` — gives you exactly one match, errors otherwise
-
-```python
-student = session.exec(select(Student).where(Student.id == 1)).one()
-```
-
-Use `.one()` when:
-- You are 100% sure exactly one row matches
-- You want the program to **crash** if it finds 0 or 2+ rows (a safety net)
-
-### Comparison:
-
-| Method | 0 matches | 1 match | 2+ matches |
-|--------|-----------|---------|-----------|
-| `.all()` | `[]` | `[obj]` | `[obj1, obj2, ...]` |
-| `.first()` | `None` | `obj` | `obj` (first one) |
-| `.one()` | ❌ error | `obj` | ❌ error |
-
-> 💡 For looking up by ID, beginners usually use `.first()`. It's safer.
-
----
-
-## 12. Filtering with `.where()`
-
-`.where()` is SQLModel's version of SQL's `WHERE`.
-
-### Basic comparisons:
-
-```python
-# Students older than 20
-statement = select(Student).where(Student.age > 20)
-
-# Students named "Ahmed"
-statement = select(Student).where(Student.name == "Ahmed")
-
-# Inactive students
-statement = select(Student).where(Student.is_active == False)
-```
-
-> Notice — you use `Student.age > 20` (the class attribute), not `student.age > 20` (an instance). SQLModel reads this to build the SQL.
-
-### Multiple conditions:
-
-Chain `.where()` — they combine with **AND**:
-
-```python
-# Active students older than 20
-statement = (
-    select(Student)
-    .where(Student.age > 20)
-    .where(Student.is_active == True)
-)
-```
-
-### Comparison operators you can use:
-
-| Python | SQL meaning |
-|--------|-------------|
-| `Student.age == 20` | equals |
-| `Student.age != 20` | not equal |
-| `Student.age > 20` | greater than |
-| `Student.age >= 20` | greater than or equal |
-| `Student.age < 20` | less than |
-| `Student.age <= 20` | less than or equal |
-
-### Example: get all active students above age 18
-
-```python
-with Session(engine) as session:
-    statement = (
-        select(Student)
-        .where(Student.age > 18)
-        .where(Student.is_active == True)
-    )
-    results = session.exec(statement).all()
-    for s in results:
-        print(s.name, s.age)
-```
-
----
-
-## 13. UPDATE — Just Change the Object
-
-This is where SQLModel feels truly magical.
-
-### The pattern:
-
-1. Fetch the row.
-2. Change the field on the Python object.
-3. Commit.
-
-```python
-with Session(engine) as session:
-    student = session.exec(select(Student).where(Student.id == 1)).first()
-
-    student.age = 25               # 👈 just change the attribute
-    student.name = "Ahmed Khan"    # 👈 and another
-
-    session.add(student)            # tell the session "this changed"
-    session.commit()
-    session.refresh(student)        # reload to confirm
-```
-
-### Compare to raw SQL:
-
-```python
-cursor.execute("UPDATE students SET age = 25, name = 'Ahmed Khan' WHERE id = 1")
-connection.commit()
+# 1. The engine — where the database lives
+engine = create_engine("sqlite:///school.db")
+
+# 2. The FastAPI app
+app = FastAPI()
+
+# 3. Create the tables when the app starts
+@app.on_event("startup")
+def on_startup():
+    SQLModel.metadata.create_all(engine)
 ```
 
 ### What's happening?
 
-When you fetch an object inside a session, the session **tracks** it. When you change a field and call `commit()`, the session figures out exactly what changed and writes the right `UPDATE` statement.
+| Line | What it does |
+|------|--------------|
+| `create_engine("sqlite:///school.db")` | "My database lives in `school.db`" |
+| `SQLModel.metadata.create_all(engine)` | "Create all tables that have `table=True`" |
+| `@app.on_event("startup")` | "Do this when the server starts" |
 
-> 💡 You don't need `session.add(student)` if the student was just fetched in the same session — but adding it doesn't hurt and is the safe default for beginners.
+### Run it:
+
+```bash
+uvicorn main:app --reload
+```
+
+✅ Open `http://localhost:8000/docs` — empty (no endpoints yet), but no errors.
+✅ Look in your folder — `school.db` was created!
+
+Open it in **DB Browser for SQLite** — you'll see the `student` table with all your columns. 🎉
 
 ---
 
-## 14. DELETE — Remove a Row
+## 7. Step 3 — The `get_session()` Helper
 
-Same pattern: fetch, then delete.
+To talk to the database, every endpoint needs a **Session**. Instead of writing the same setup in every endpoint, we write **one** helper:
 
 ```python
-with Session(engine) as session:
-    student = session.exec(select(Student).where(Student.id == 1)).first()
+from sqlmodel import Session
 
-    if student:
-        session.delete(student)
-        session.commit()
-        print("Deleted!")
-    else:
-        print("Not found")
+def get_session():
+    with Session(engine) as session:
+        yield session
 ```
+
+Then in your endpoints, you ask FastAPI for it using `Depends()`:
+
+```python
+from fastapi import Depends
+
+@app.get("/something")
+def my_endpoint(session: Session = Depends(get_session)):
+    # use `session` here
+    ...
+```
+
+### What does `Depends(get_session)` mean?
+
+> "Hey FastAPI — give my function a database session to use. And clean it up automatically when done."
+
+That's it. **One helper, used by every endpoint.** Don't worry about understanding `yield` deeply — just know this is the standard pattern.
+
+---
+
+## 8. POST `/students`
+
+Time for your first database insert!
+
+```python
+@app.post("/students")
+def create_student(student: Student, session: Session = Depends(get_session)):
+    session.add(student)
+    session.commit()
+    session.refresh(student)
+    return student
+```
+
+### Walking through it:
+
+| Line | What it does |
+|------|--------------|
+| `student: Student` | FastAPI reads the JSON body and creates a `Student` object (with Pydantic validation!) |
+| `session.add(student)` | "Save this — but don't commit yet" |
+| `session.commit()` | "Now write it to the database file" |
+| `session.refresh(student)` | "Reload from DB so I can see the auto-generated `id`" |
+| `return student` | Send back the saved student (now with `id`) |
+
+### Test in `/docs`! 🎯
+
+1. Open `http://localhost:8000/docs`
+2. Find **POST `/students`** — click to expand
+3. Click **"Try it out"**
+4. Enter this JSON:
+
+```json
+{
+  "name": "Ahmed",
+  "age": 20,
+  "is_active": true
+}
+```
+
+5. Click **"Execute"**
+
+### Response: `200 OK`
+
+```json
+{
+  "id": 1,
+  "name": "Ahmed",
+  "age": 20,
+  "is_active": true
+}
+```
+
+🎉 **You just saved data to a real database!** Notice `id: 1` — the database auto-assigned it.
+
+### Try sending bad data:
+
+```json
+{
+  "name": "Sara",
+  "age": "twenty"
+}
+```
+
+Response: `422 Unprocessable Entity` — same Pydantic validation you know! Type hints still rule.
+
+---
+
+## 9. GET `/students`
+
+Now let's read all students.
+
+```python
+from sqlmodel import select
+
+@app.get("/students")
+def list_students(session: Session = Depends(get_session)):
+    students = session.exec(select(Student)).all()
+    return students
+```
+
+### Walking through it:
+
+| Line | What it does |
+|------|--------------|
+| `select(Student)` | "Build a SELECT query for the `Student` table" |
+| `session.exec(...)` | "Run this query against the database" |
+| `.all()` | "Give me back all rows as a list of `Student` objects" |
+
+### Test in `/docs`:
+
+1. Find **GET `/students`** — click to expand
+2. Click **"Try it out"** → **"Execute"**
+
+### Response:
+
+```json
+[
+  {
+    "id": 1,
+    "name": "Ahmed",
+    "age": 20,
+    "is_active": true
+  }
+]
+```
+
+Add 2-3 more students from POST first, then call GET again — you'll see them all in the list.
 
 ### Compare to raw SQL:
 
 ```python
-cursor.execute("DELETE FROM students WHERE id = 1")
-connection.commit()
+# Raw SQL (what you avoided!)
+cursor.execute("SELECT * FROM students")
+rows = cursor.fetchall()
+# rows = [(1, 'Ahmed', 20, 1)]   ← ugly tuples!
 ```
 
-### Safety note:
+vs
 
-`session.delete()` only deletes the **specific row** of the object you fetched. You can't accidentally wipe the whole table the way you could with `DELETE FROM students` (no `WHERE`).
-
-This is another safety win of SQLModel.
+```python
+# SQLModel
+students = session.exec(select(Student)).all()
+# students = [Student(id=1, name='Ahmed', age=20, is_active=True)]   ← proper objects!
+```
 
 ---
 
-## 15. The `with` Statement
+## 10. GET `/students/{id}`
 
-You've seen `with Session(engine) as session:` in every example. What is it doing?
-
-### Without `with` (the bad way):
+Get a specific student by ID.
 
 ```python
-session = Session(engine)
-student = Student(name="Ahmed", age=20)
-session.add(student)
-session.commit()
-session.close()      # ❌ easy to forget!
+from fastapi import HTTPException
+
+@app.get("/students/{student_id}")
+def get_student(student_id: int, session: Session = Depends(get_session)):
+    student = session.get(Student, student_id)
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    return student
 ```
 
-### With `with` (the safe way):
+### What's new?
+
+- **`session.get(Student, student_id)`** — fastest way to fetch by primary key. Returns the object or `None`.
+- **`HTTPException(status_code=404, ...)`** — proper way to say "not found" in FastAPI.
+
+### Test in `/docs`:
+
+1. Find **GET `/students/{student_id}`**
+2. Enter `student_id`: `1`
+3. Click **"Execute"**
+
+### Response (if student 1 exists):
+
+```json
+{
+  "id": 1,
+  "name": "Ahmed",
+  "age": 20,
+  "is_active": true
+}
+```
+
+### Response (if student 99 doesn't exist):
+
+```json
+{
+  "detail": "Student not found"
+}
+```
+
+Status code: `404 Not Found`. 🛡️
+
+---
+
+## 11. PUT `/students/{id}`
+
+Update an existing student.
 
 ```python
-with Session(engine) as session:
-    student = Student(name="Ahmed", age=20)
+@app.put("/students/{student_id}")
+def update_student(student_id: int, updated: Student, session: Session = Depends(get_session)):
+    student = session.get(Student, student_id)
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+
+    student.name = updated.name
+    student.age = updated.age
+    student.is_active = updated.is_active
+
     session.add(student)
     session.commit()
-# session.close() is called automatically when the block ends
+    session.refresh(student)
+    return student
 ```
 
-### Why is this important?
+### What's happening?
 
-- A session uses a database connection.
-- If you forget to close it, the connection stays open → eventually problems.
-- `with` **guarantees** cleanup — even if an error happens inside the block.
+1. **Find the student** — by ID
+2. If not found → 404
+3. **Change the fields** on the existing object
+4. **Commit** — SQLModel writes the right `UPDATE` SQL for us
 
-> 🎯 **Always use the `with` pattern.** It is the standard Python way to handle resources cleanly.
+### Test in `/docs`:
+
+1. Find **PUT `/students/{student_id}`**
+2. Enter `student_id`: `1`
+3. Enter JSON body:
+
+```json
+{
+  "name": "Ahmed Khan",
+  "age": 25,
+  "is_active": true
+}
+```
+
+4. Click **"Execute"**
+
+### Response:
+
+```json
+{
+  "id": 1,
+  "name": "Ahmed Khan",
+  "age": 25,
+  "is_active": true
+}
+```
+
+✅ The student is updated! Call **GET `/students/1`** again to confirm.
+
+### The magic:
+
+You **never wrote** `UPDATE students SET name=... WHERE id=...`. SQLModel did it for you. 🪄
 
 ---
 
-## 16. `Field()` Extras
+## 12. DELETE `/students/{id}`
 
-You already know `Field()` from Pydantic Part 1 (`min_length`, `max_length`, `gt`, `ge`, ...). In SQLModel, `Field()` adds **a few extra database-only options**.
-
-### `primary_key=True` — the unique identifier
+Remove a student.
 
 ```python
-id: int | None = Field(default=None, primary_key=True)
+@app.delete("/students/{student_id}")
+def delete_student(student_id: int, session: Session = Depends(get_session)):
+    student = session.get(Student, student_id)
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+
+    session.delete(student)
+    session.commit()
+    return {"message": "Student deleted successfully"}
 ```
 
-Already familiar — marks the ID column.
+### What's happening?
 
-### `index=True` — makes searches faster
+1. Find the student
+2. If not found → 404
+3. **`session.delete(student)`** — mark for deletion
+4. **`session.commit()`** — actually delete
 
-```python
-name: str = Field(index=True)
+### Test in `/docs`:
+
+1. Find **DELETE `/students/{student_id}`**
+2. Enter `student_id`: `2`
+3. Click **"Execute"**
+
+### Response:
+
+```json
+{
+  "message": "Student deleted successfully"
+}
 ```
 
-If you'll often search by `name`, set `index=True`. The database creates an index for fast lookups.
-
-> 💡 Use indexes only for fields you actually filter/search by. Too many indexes slow down inserts.
-
-### `unique=True` — no duplicates allowed
-
-```python
-email: str = Field(unique=True)
-```
-
-If you try to insert two students with the same email, the database refuses.
-
-### `nullable=False` — required at the DB level
-
-By default, optional Python fields can be `NULL` in the database. To enforce required at the DB level:
-
-```python
-name: str = Field(nullable=False)
-```
-
-> Usually you don't need this for required fields — Pydantic and the type hint already enforce it.
-
-### `default=...` — initial value
-
-```python
-is_active: bool = Field(default=True)
-```
-
-Same as Pydantic — gives the field a default if not provided.
-
-### Combining options:
-
-```python
-class Student(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    name: str = Field(index=True, min_length=1, max_length=50)
-    email: str = Field(unique=True, index=True)
-    age: int = Field(gt=0, lt=120)
-    is_active: bool = Field(default=True)
-```
-
-All Pydantic validators **plus** all SQL options — in one place. ✨
+✅ Call **GET `/students`** again — student 2 is gone.
 
 ---
 
-## 17. The Complete Picture
+## 13. The Magic Moment
 
-Here is a single script that does **everything** — create table, insert, read, update, delete.
+This is the moment that proves **everything works**.
+
+### Try this:
+
+1. From `/docs`, **add 3 students** with POST
+2. **Stop the server** (Ctrl+C in terminal)
+3. **Start it again** (`uvicorn main:app --reload`)
+4. Open `/docs`, call **GET `/students`**
+
+### What do you see?
+
+```json
+[
+  {"id": 1, "name": "Ahmed", "age": 20, "is_active": true},
+  {"id": 2, "name": "Fatima", "age": 19, "is_active": true},
+  {"id": 3, "name": "Sara", "age": 22, "is_active": true}
+]
+```
+
+🎉 **All your data is still there!**
+
+### Compare to before:
+
+| | Old way (list `[]`) | Now (SQLModel + DB) |
+|---|---------------------|---------------------|
+| After server restart | ❌ All data lost | ✅ All data still there |
+| After laptop restart | ❌ All data lost | ✅ All data still there |
+| Send `school.db` to a friend | (no DB to send) | ✅ Works on their machine too |
+
+This is what a **real application** does. You just built one. ✨
+
+---
+
+## 14. Full Example
+
+Here is the complete `main.py` — all in one place:
 
 ```python
-# crud_demo.py
-
+from fastapi import FastAPI, Depends, HTTPException
 from sqlmodel import SQLModel, Field, Session, create_engine, select
 
 # 1. Define the model
 class Student(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    name: str = Field(index=True)
+    name: str
     age: int
     is_active: bool = True
 
 # 2. Set up the engine
-engine = create_engine("sqlite:///school.db", echo=False)
+engine = create_engine("sqlite:///school.db")
 
-# 3. Create tables
-SQLModel.metadata.create_all(engine)
+# 3. Create the FastAPI app
+app = FastAPI()
 
+# 4. Create tables on startup
+@app.on_event("startup")
+def on_startup():
+    SQLModel.metadata.create_all(engine)
 
-# 4. INSERT
-def add_students():
+# 5. Session helper
+def get_session():
     with Session(engine) as session:
-        session.add(Student(name="Ahmed", age=20))
-        session.add(Student(name="Fatima", age=19))
-        session.add(Student(name="Sara", age=22))
-        session.commit()
-        print("Students added!")
+        yield session
 
+# ---- ENDPOINTS ----
 
-# 5. READ all
-def list_students():
-    with Session(engine) as session:
-        students = session.exec(select(Student)).all()
-        for s in students:
-            print(f"{s.id}: {s.name} ({s.age})")
+@app.post("/students")
+def create_student(student: Student, session: Session = Depends(get_session)):
+    session.add(student)
+    session.commit()
+    session.refresh(student)
+    return student
 
+@app.get("/students")
+def list_students(session: Session = Depends(get_session)):
+    return session.exec(select(Student)).all()
 
-# 6. READ one
-def get_student(student_id: int):
-    with Session(engine) as session:
-        student = session.exec(
-            select(Student).where(Student.id == student_id)
-        ).first()
-        if student:
-            print(f"Found: {student.name}")
-        else:
-            print("Not found")
+@app.get("/students/{student_id}")
+def get_student(student_id: int, session: Session = Depends(get_session)):
+    student = session.get(Student, student_id)
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    return student
 
+@app.put("/students/{student_id}")
+def update_student(student_id: int, updated: Student, session: Session = Depends(get_session)):
+    student = session.get(Student, student_id)
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    student.name = updated.name
+    student.age = updated.age
+    student.is_active = updated.is_active
+    session.add(student)
+    session.commit()
+    session.refresh(student)
+    return student
 
-# 7. UPDATE
-def update_age(student_id: int, new_age: int):
-    with Session(engine) as session:
-        student = session.exec(
-            select(Student).where(Student.id == student_id)
-        ).first()
-        if student:
-            student.age = new_age
-            session.add(student)
-            session.commit()
-            print("Updated!")
-
-
-# 8. DELETE
-def delete_student(student_id: int):
-    with Session(engine) as session:
-        student = session.exec(
-            select(Student).where(Student.id == student_id)
-        ).first()
-        if student:
-            session.delete(student)
-            session.commit()
-            print("Deleted!")
-
-
-# Run them in order
-if __name__ == "__main__":
-    add_students()
-    list_students()
-    get_student(1)
-    update_age(1, 25)
-    delete_student(2)
-    list_students()
+@app.delete("/students/{student_id}")
+def delete_student(student_id: int, session: Session = Depends(get_session)):
+    student = session.get(Student, student_id)
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    session.delete(student)
+    session.commit()
+    return {"message": "Student deleted successfully"}
 ```
 
-> Run this script — you've just done a full CRUD round-trip **without writing a single SQL string**.
+**That's it.** A full database-backed API in about 50 lines. ✨
 
 ---
 
-## 18. Why SQLModel Beats Raw SQL
+## 15. Try It Yourself — Teacher Model
 
-Now let's prove it visually.
+Now let's apply the same pattern with a `Teacher` model.
 
-### Defining a table:
+### Step 1: Define the model
 
-| | Raw SQL | SQLModel |
-|---|---------|----------|
-| Lines of code | 7 | 5 |
-| Type hints | ❌ | ✅ |
-| Validation | Manual | Automatic |
-| Same as Pydantic? | ❌ | ✅ |
+```python
+class Teacher(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    name: str
+    subject: str
+    experience_years: int
+```
 
-### Inserting:
+Add this to your `main.py` (next to the `Student` class).
 
-| | Raw SQL | SQLModel |
-|---|---------|----------|
-| Code | `cursor.execute("INSERT INTO students (name, age) VALUES (?, ?)", (...))` | `session.add(Student(name=..., age=...))` |
-| Need to remember column order? | ✅ | ❌ |
-| SQL injection risk? | If you forget `?` | None |
-| Validation? | Manual | Automatic |
+### Step 2: Build the 5 endpoints
 
-### Reading:
+```python
+@app.post("/teachers")
+def create_teacher(teacher: Teacher, session: Session = Depends(get_session)):
+    session.add(teacher)
+    session.commit()
+    session.refresh(teacher)
+    return teacher
 
-| | Raw SQL | SQLModel |
-|---|---------|----------|
-| Result type | Tuples `(1, 'Ahmed', 20)` | Objects `Student(id=1, name='Ahmed', age=20)` |
-| Access by name? | ❌ row[1] | ✅ student.name |
-| IDE autocomplete? | ❌ | ✅ |
+@app.get("/teachers")
+def list_teachers(session: Session = Depends(get_session)):
+    return session.exec(select(Teacher)).all()
 
-### Updating:
+@app.get("/teachers/{teacher_id}")
+def get_teacher(teacher_id: int, session: Session = Depends(get_session)):
+    teacher = session.get(Teacher, teacher_id)
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+    return teacher
 
-| | Raw SQL | SQLModel |
-|---|---------|----------|
-| Code | `UPDATE students SET age=? WHERE id=?` | `student.age = 25; commit` |
-| Risk of forgetting `WHERE`? | High | Low |
+@app.put("/teachers/{teacher_id}")
+def update_teacher(teacher_id: int, updated: Teacher, session: Session = Depends(get_session)):
+    teacher = session.get(Teacher, teacher_id)
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+    teacher.name = updated.name
+    teacher.subject = updated.subject
+    teacher.experience_years = updated.experience_years
+    session.add(teacher)
+    session.commit()
+    session.refresh(teacher)
+    return teacher
 
-### Conclusion:
+@app.delete("/teachers/{teacher_id}")
+def delete_teacher(teacher_id: int, session: Session = Depends(get_session)):
+    teacher = session.get(Teacher, teacher_id)
+    if not teacher:
+        raise HTTPException(status_code=404, detail="Teacher not found")
+    session.delete(teacher)
+    session.commit()
+    return {"message": "Teacher deleted successfully"}
+```
 
-**Less code. Safer code. Type-safe code. Easier to read.**
+### Test in `/docs`:
 
-Every benefit of Pydantic + every benefit of a database, in one tool.
+Try POST `/teachers` with:
+
+```json
+{
+  "name": "Mr. Khan",
+  "subject": "Mathematics",
+  "experience_years": 10
+}
+```
+
+You now have **two** working CRUD APIs! Both share the same `school.db` file. 🎉
+
+> 💡 Notice — the **exact same 5-endpoint pattern** works for any model. Just swap the class name. This is the power of patterns.
 
 ---
 
-## 19. Common Mistakes
+## 16. Bonus Example — Book Model
+
+One more example for variety. Try this on your own — it's a great practice.
+
+```python
+class Book(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    title: str
+    author: str
+    pages: int
+    is_published: bool = True
+```
+
+Add 5 endpoints for `/books` — same pattern as `/students` and `/teachers`.
+
+Test in `/docs`:
+
+```json
+{
+  "title": "Python for Beginners",
+  "author": "Sara Khan",
+  "pages": 250,
+  "is_published": true
+}
+```
+
+### See the pattern?
+
+Every new model = **same 5 endpoints**. Different name, same shape. 🎯
+
+This is why real codebases use **patterns** — once you know the pattern, every new feature is just typing.
+
+---
+
+## 17. Common Mistakes
 
 ### ❌ Mistake 1: Forgot `table=True`
 
 ```python
 class Student(SQLModel):    # ❌ no table=True
-    name: str
+    ...
 ```
 
-Result: SQLModel treats this as a normal Pydantic model. No database table is created.
+Result: No database table is created. SQLModel treats this as a normal Pydantic model.
 
 ✅ **Correct:**
 
@@ -849,7 +762,7 @@ class Student(SQLModel, table=True):
 
 ```python
 class Student(SQLModel, table=True):
-    id: int = Field(primary_key=True)    # ❌ before insert, id is None!
+    id: int = Field(primary_key=True)    # ❌ no default — must always provide!
 ```
 
 ✅ **Correct:**
@@ -864,278 +777,272 @@ class Student(SQLModel, table=True):
 ### ❌ Mistake 3: Forgot `session.commit()`
 
 ```python
-with Session(engine) as session:
-    session.add(Student(name="Ahmed", age=20))
-    # ❌ no commit — data NOT saved
+session.add(student)
+# ❌ no commit — student NOT saved
 ```
 
 ✅ **Correct:**
 
 ```python
-with Session(engine) as session:
-    session.add(Student(name="Ahmed", age=20))
-    session.commit()
-```
-
----
-
-### ❌ Mistake 4: Forgot `SQLModel.metadata.create_all(engine)`
-
-```python
-engine = create_engine("sqlite:///school.db")
-# ❌ tables NEVER created
-with Session(engine) as session:
-    session.add(Student(...))   # crashes — table doesn't exist
-```
-
-✅ **Correct:**
-
-```python
-engine = create_engine("sqlite:///school.db")
-SQLModel.metadata.create_all(engine)    # ✅ create tables first
-```
-
----
-
-### ❌ Mistake 5: Using `student.age > 20` (instance) instead of `Student.age > 20` (class)
-
-```python
-statement = select(Student).where(student.age > 20)    # ❌ student, lowercase!
-```
-
-✅ **Correct:**
-
-```python
-statement = select(Student).where(Student.age > 20)    # ✅ class, uppercase
-```
-
-Remember: filters are built on the **class**, not an instance.
-
----
-
-### ❌ Mistake 6: Forgot to `refresh()` before reading `.id`
-
-```python
-with Session(engine) as session:
-    student = Student(name="Ahmed", age=20)
-    session.add(student)
-    session.commit()
-    print(student.id)    # ❓ might error or show None
-```
-
-✅ **Correct:**
-
-```python
-with Session(engine) as session:
-    student = Student(name="Ahmed", age=20)
-    session.add(student)
-    session.commit()
-    session.refresh(student)
-    print(student.id)    # ✅
-```
-
----
-
-### ❌ Mistake 7: Forgot the `with` block — session not closed
-
-```python
-session = Session(engine)
-session.add(Student(...))
+session.add(student)
 session.commit()
-# ❌ session never closed
+session.refresh(student)
+```
+
+---
+
+### ❌ Mistake 4: Forgot to create tables
+
+```python
+engine = create_engine("sqlite:///school.db")
+# ❌ tables never created — endpoints will crash
 ```
 
 ✅ **Correct:**
 
 ```python
-with Session(engine) as session:
-    session.add(Student(...))
-    session.commit()
-# auto-closed here
+engine = create_engine("sqlite:///school.db")
+
+@app.on_event("startup")
+def on_startup():
+    SQLModel.metadata.create_all(engine)
 ```
 
 ---
 
-## 20. Practice Exercises
+### ❌ Mistake 5: Forgot `Depends(get_session)`
 
-### Exercise 1: Define a `Book` model
-Build a `Book` SQLModel with:
-- `id` (primary key, auto)
-- `title` (text, required, indexed)
-- `author` (text, required)
-- `pages` (integer, optional)
-- `is_published` (bool, default True)
+```python
+@app.post("/students")
+def create_student(student: Student):    # ❌ no session!
+    session.add(student)                  # NameError: session is not defined
+```
 
-### Exercise 2: Create the database
-Set up an engine and call `metadata.create_all`. Open the `.db` file in DB Browser — confirm the `book` table is there.
+✅ **Correct:**
 
-### Exercise 3: Insert 5 books
-Add 5 different books in one session, then commit.
-
-### Exercise 4: List all books
-Use `select(Book)` to print every book's title and author.
-
-### Exercise 5: Filter
-Find all books with more than 200 pages.
-
-### Exercise 6: Update
-Change the title of book ID 1 to "Updated Title". Verify.
-
-### Exercise 7: Delete
-Delete book ID 2. Confirm with a re-read.
-
-### Exercise 8: refresh demo
-After inserting a new book, print `book.id` before AND after `session.refresh(book)`. Observe the difference.
-
-### Exercise 9: Compare with raw SQL
-Take any exercise above and write it in **two** versions — once with raw `sqlite3`, once with SQLModel. Count the lines. Notice the difference.
-
-### Exercise 10: `unique` constraint
-Add `email: str = Field(unique=True)` to a `User` model. Try to insert two users with the same email. Observe the error.
+```python
+@app.post("/students")
+def create_student(student: Student, session: Session = Depends(get_session)):
+    session.add(student)
+```
 
 ---
 
-## 21. Quick Cheat Sheet
+### ❌ Mistake 6: Returning a 404 incorrectly
 
 ```python
+return {"error": "Not found"}     # ❌ wrong — status is still 200
+```
+
+✅ **Correct:**
+
+```python
+raise HTTPException(status_code=404, detail="Not found")
+```
+
+---
+
+### ❌ Mistake 7: Forgot `refresh()` and returning `id` as `None`
+
+```python
+session.add(student)
+session.commit()
+return student              # ❌ student.id might be None
+```
+
+✅ **Correct:**
+
+```python
+session.add(student)
+session.commit()
+session.refresh(student)    # ✅ reloads, including the new id
+return student
+```
+
+---
+
+## 18. Practice Exercises
+
+All exercises should be tested from `/docs`. 🎯
+
+### Exercise 1 — Build the Teacher API
+Add the `Teacher` model and all 5 endpoints from section 15. Test each one in `/docs`.
+
+### Exercise 2 — Build the Book API
+Add the `Book` model and all 5 endpoints. Test each in `/docs`.
+
+### Exercise 3 — Add validation
+On `Student`, add:
+- `name`: `Field(min_length=1, max_length=50)`
+- `age`: `Field(gt=0, lt=120)`
+
+Test by sending invalid data — confirm 422 errors.
+
+### Exercise 4 — Persistence test
+- Add 3 students, 2 teachers, 2 books
+- Stop the server (Ctrl+C)
+- Restart it
+- Call GET on all three endpoints — confirm all data is still there
+
+### Exercise 5 — DB Browser inspection
+Open `school.db` in DB Browser for SQLite. You should see THREE tables: `student`, `teacher`, `book`. Open each — your data is right there.
+
+### Exercise 6 — `is_active` filter
+Add `is_active: bool = True` field to `Teacher`. Modify GET `/teachers` to return only active teachers. (Hint: `select(Teacher).where(Teacher.is_active == True)`)
+
+### Exercise 7 — Build a `Course` model
+Design and build CRUD for `Course` with fields: `id`, `name`, `instructor`, `duration_hours`, `is_available`.
+
+### Exercise 8 — Find your own bug
+Intentionally remove `session.commit()` from POST. Try creating a student. Then restart the server. What happens? Why? Fix it.
+
+---
+
+## 19. Quick Cheat Sheet
+
+```python
+# ---- imports ----
+from fastapi import FastAPI, Depends, HTTPException
 from sqlmodel import SQLModel, Field, Session, create_engine, select
 
-# 1. Define
+# ---- model ----
 class Student(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    name: str = Field(index=True)
-    age: int
-    is_active: bool = True
-
-# 2. Engine + tables
-engine = create_engine("sqlite:///school.db")
-SQLModel.metadata.create_all(engine)
-
-# 3. Insert
-with Session(engine) as session:
-    session.add(Student(name="Ahmed", age=20))
-    session.commit()
-
-# 4. Read all
-with Session(engine) as session:
-    students = session.exec(select(Student)).all()
-
-# 5. Read one
-with Session(engine) as session:
-    student = session.exec(
-        select(Student).where(Student.id == 1)
-    ).first()
-
-# 6. Filter
-with Session(engine) as session:
-    older = session.exec(
-        select(Student).where(Student.age > 20)
-    ).all()
-
-# 7. Update
-with Session(engine) as session:
-    s = session.exec(select(Student).where(Student.id == 1)).first()
-    s.age = 25
-    session.add(s)
-    session.commit()
-
-# 8. Delete
-with Session(engine) as session:
-    s = session.exec(select(Student).where(Student.id == 1)).first()
-    session.delete(s)
-    session.commit()
-```
-
-### `Field()` options summary:
-
-| Option | Job |
-|--------|-----|
-| `default=...` | initial value |
-| `primary_key=True` | unique row identifier |
-| `index=True` | speed up lookups |
-| `unique=True` | no duplicates |
-| `nullable=False` | required at DB level |
-| `min_length` / `max_length` | string length rules (from Pydantic) |
-| `gt` / `ge` / `lt` / `le` | numeric rules (from Pydantic) |
-
-### `.exec()` result methods:
-
-| Method | Returns | Use when |
-|--------|---------|----------|
-| `.all()` | list | many rows expected |
-| `.first()` | first match or `None` | one row, may not exist |
-| `.one()` | exactly one row, else error | strict — must exist exactly once |
-
----
-
-## 🎯 Summary — What You Learned Today
-
-✅ Why raw SQL is painful for everyday CRUD
-✅ SQLModel = Pydantic + SQLAlchemy in one
-✅ One class becomes table + schema + Python object
-✅ `class Student(SQLModel, table=True)` syntax
-✅ `Engine`, `Session`, `select` — the three new words
-✅ `SQLModel.metadata.create_all(engine)` builds your tables
-✅ INSERT = `session.add()` + `session.commit()`
-✅ `session.refresh()` to get auto-generated values like `id`
-✅ SELECT all = `session.exec(select(Model)).all()`
-✅ `.first()`, `.one()`, `.all()` — three reading methods
-✅ Filtering with `.where()` and Python comparisons
-✅ UPDATE = change the attribute + commit (no SQL!)
-✅ DELETE = `session.delete()` + commit
-✅ The `with Session(engine)` pattern for safe sessions
-✅ `Field()` extras — `index`, `unique`, `nullable`
-✅ Why SQLModel beats raw SQL in every way
-
----
-
-## 22. What's Next?
-
-**You can now write a full database-backed Python script with no SQL strings.**
-
-But your FastAPI endpoints still use lists `[]`!
-
-### Next class — SQLModel + FastAPI Integration:
-
-This is where **everything you've learned comes together**:
-
-```python
-# Imagine this in your FastAPI app:
-
-@app.post("/students", response_model=StudentResponse)
-def create_student(student: StudentCreate, session: Session = Depends(get_session)):
-    new = Student.model_validate(student)
-    session.add(new)
-    session.commit()
-    session.refresh(new)
-    return new
-
-@app.get("/students", response_model=list[StudentResponse])
-def list_students(session: Session = Depends(get_session)):
-    return session.exec(select(Student)).all()
-```
-
-✨ Look at that — Pydantic Part 2 (`response_model`, `model_validate`), SQLite Basics (database concepts), and SQLModel today — **all coming together**.
-
-After the next class, restart your server and your data **stays.** Your API becomes real. 🎉
-
-### Future classes:
-
-- Relationships — `Student → School`, `Book → Author` (foreign keys)
-- Many-to-many tables
-- Layered architecture (routes → services → database)
-- Authentication + JWT
-- Migrations with Alembic
-
----
-
-**Remember:** SQLModel is just Pydantic that knows how to live on disk. Everything you learned about Pydantic — type hints, `Field()`, validation — still works. Plus `table=True` makes it a real table. Plus `Session` lets you save, read, change, and delete. 💪
-
-```python
-class Student(SQLModel, table=True):    # ← Pydantic + database in one line
     id: int | None = Field(default=None, primary_key=True)
     name: str
     age: int
+
+# ---- setup ----
+engine = create_engine("sqlite:///school.db")
+app = FastAPI()
+
+@app.on_event("startup")
+def on_startup():
+    SQLModel.metadata.create_all(engine)
+
+def get_session():
+    with Session(engine) as session:
+        yield session
+
+# ---- 5 endpoints (the pattern) ----
+
+# POST — create
+@app.post("/students")
+def create(student: Student, session: Session = Depends(get_session)):
+    session.add(student)
+    session.commit()
+    session.refresh(student)
+    return student
+
+# GET all — list
+@app.get("/students")
+def list_all(session: Session = Depends(get_session)):
+    return session.exec(select(Student)).all()
+
+# GET one
+@app.get("/students/{id}")
+def get_one(id: int, session: Session = Depends(get_session)):
+    s = session.get(Student, id)
+    if not s:
+        raise HTTPException(404, "Not found")
+    return s
+
+# PUT — update
+@app.put("/students/{id}")
+def update(id: int, new: Student, session: Session = Depends(get_session)):
+    s = session.get(Student, id)
+    if not s:
+        raise HTTPException(404, "Not found")
+    s.name = new.name
+    s.age = new.age
+    session.add(s)
+    session.commit()
+    session.refresh(s)
+    return s
+
+# DELETE
+@app.delete("/students/{id}")
+def delete(id: int, session: Session = Depends(get_session)):
+    s = session.get(Student, id)
+    if not s:
+        raise HTTPException(404, "Not found")
+    session.delete(s)
+    session.commit()
+    return {"message": "Deleted"}
 ```
+
+### Session methods (the essentials):
+
+| Method | Use it for |
+|--------|-----------|
+| `session.add(obj)` | Add or update an object |
+| `session.commit()` | Save changes to the database file |
+| `session.refresh(obj)` | Reload object from DB (gets new `id`) |
+| `session.get(Model, id)` | Fast fetch by primary key |
+| `session.exec(select(Model)).all()` | Fetch all rows as objects |
+| `session.exec(select(Model).where(...)).first()` | Fetch one row (or `None`) |
+| `session.delete(obj)` | Delete an object |
+
+---
+
+## 🎯 Summary — What You Built Today
+
+✅ A **real working API** that saves data to disk
+✅ One Python class becomes a database table (no SQL written!)
+✅ Five endpoints — POST, GET all, GET one, PUT, DELETE
+✅ All tested visually in `/docs` (Swagger UI)
+✅ Same Pydantic syntax, same validation, same `/docs` experience
+✅ Data **survives server restarts** — like a real production app
+✅ The 5-endpoint pattern works for any model (Student, Teacher, Book, ...)
+
+---
+
+## 20. What's Next?
+
+**You can now build database-backed APIs for any single-table model.** 🎉
+
+### In future classes, we will cover:
+
+**1. Cleaner code with separate input/output models (Pydantic Part 2 style)**
+- `StudentCreate` (no `id`) for POST input
+- `StudentResponse` for GET output
+- `response_model=StudentResponse` for clean `/docs`
+
+**2. Relationships — connecting tables**
+- A `Student` belongs to a `School`
+- A `Book` has an `Author`
+- A `Course` has many `Students` and many `Teachers`
+
+**3. Layered architecture**
+- Split big `main.py` into folders: `models/`, `routes/`, `services/`
+- Real production project structure
+
+**4. Authentication + JWT**
+- Login system
+- Each user sees only their own data
+- Bearer token security
+
+**5. PostgreSQL**
+- Same SQLModel code, but use Postgres instead of SQLite
+- For real production deployments
+
+---
+
+**Remember:**
+
+```python
+# This is your entire database table:
+class Student(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    name: str
+    age: int
+
+# This is your entire INSERT:
+session.add(student); session.commit()
+
+# This is your entire SELECT:
+session.exec(select(Student)).all()
+```
+
+No SQL strings. No tuples. No manual validation. Just Python + `/docs` + magic. 💪
 
 **Happy Coding! 🚀**
