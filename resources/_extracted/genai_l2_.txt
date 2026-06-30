@@ -1,0 +1,488 @@
+
+
+===== PAGE 1 =====
+
+  Prompt Engineering  &  Structured Output
+muhammadosama.hq@gmail.com-
+Module - 2
+GenAI
+
+===== PAGE 2 =====
+
+Topics to be Covered
+Prompt Designing & Prompt Engineering
+PromptTemplate
+Prompt Serialization
+ChatPromptTemplate
+TypeDict Structured Schema
+Pydantic Structured Schema
+parsers (stroutputparser, jsonoutputparser,
+pydanticoutputparser)
+GenAI
+
+===== PAGE 3 =====
+
+What is a Prompt?
+A prompt is a piece of text or
+instruction given to a
+language model to guide it in
+generating a response.
+GenAI
+
+===== PAGE 4 =====
+
+Prompt Designing
+prompt design is the process of creating a prompt
+tailored to the specific task that the system is being
+asked to perform.
+Prompt Engineering
+it is the process of creating a prompt that is designed to
+improve a performance.
+GenAI
+
+===== PAGE 5 =====
+
+Practical Exercise: 
+Evaluating Prompt Effectiveness
+Understand the impact of prompt quality on model performance
+GenAI
+
+===== PAGE 6 =====
+
+Prompt Design - 1
+Summarize this article.
+GenAI
+
+===== PAGE 7 =====
+
+Prompt Design - 2
+You are a senior business analyst.
+Summarize the following article for an executive audience.
+Requirements:
+- Maximum 6 bullet points
+- Focus on key insights, risks, and opportunities
+- Use clear and concise language
+- Avoid repetition and unnecessary details
+Article:
+[PASTE THE SAME ARTICLE HERE]
+GenAI
+
+===== PAGE 8 =====
+
+In Langchain, There are two kind of
+prompt Templates:
+PromptTemplate: For Single Turn Conversation
+ChatPromptTemplate: For Multi-Turn Conversation
+GenAI
+
+===== PAGE 9 =====
+
+Static Prompt
+GenAI
+
+===== PAGE 10 =====
+
+PromptTemplate - Dynamic Prompt
+GenAI
+
+===== PAGE 11 =====
+
+Prompt Injection Problem
+GenAI
+
+===== PAGE 12 =====
+
+Why to use PromptTemplate instead of f-string?
+Following are the reasons to use PromptTemplate:
+1.Validation
+2.Prompt Serialization (Download Prompt Template)
+3.PromptTemplate object can be used in Chains
+GenAI
+
+===== PAGE 13 =====
+
+Prompt Serialization - Download Prompt
+GenAI
+
+===== PAGE 14 =====
+
+Prompt Serialization - Load Prompt
+GenAI
+
+===== PAGE 15 =====
+
+Use Case - Generate MOM
+GenAI
+
+===== PAGE 16 =====
+
+Use Case - Generate MOM
+GenAI
+
+===== PAGE 17 =====
+
+Use Case - Generate MOM
+GenAI
+
+===== PAGE 18 =====
+
+Use Case - Generate MOM
+GenAI
+
+===== PAGE 19 =====
+
+Exercise - Ticket Classification
+You are provided with a prompt template and a list of sample support
+tickets. Your task is to classify each ticket into one of the four
+categories:
+1.Billing
+2.Technical Issue
+3.Account Access
+4.General Inquiry
+GenAI
+
+===== PAGE 20 =====
+
+Memory
+-
+GenAI
+
+===== PAGE 21 =====
+
+ Static Prompt With Messages History
+GenAI
+
+===== PAGE 22 =====
+
+Example - Part 1
+GenAI
+
+===== PAGE 23 =====
+
+Example - Part 2
+GenAI
+
+===== PAGE 24 =====
+
+Visualize
+GenAI
+
+===== PAGE 25 =====
+
+ChatPromptTemplate - Dynamic
+GenAI
+
+===== PAGE 26 =====
+
+Manage
+Conversation
+History
+-
+GenAI
+
+===== PAGE 27 =====
+
+How to Manage Conversation History?
+There is a problem long conversations can exceed the LLM’s context
+window. So common solutions provided by langchain are:
+1.Trim Messages: Trim no of messages under token limit
+2.Delete Messages: delete some or all messages
+3.Summarize Messages: summarize previous messages
+GenAI
+
+===== PAGE 28 =====
+
+Trim Messages
+GenAI
+
+===== PAGE 29 =====
+
+Delete Messages
+GenAI
+
+===== PAGE 30 =====
+
+Summarize Messages
+GenAI
+
+===== PAGE 31 =====
+
+AI Fitness
+Chatting App
+-
+GenAI
+
+===== PAGE 32 =====
+
+AI Fitness Chatting App with History 
+GenAI
+
+===== PAGE 33 =====
+
+AI Fitness Chatting App with History 
+GenAI
+
+===== PAGE 34 =====
+
+AI Fitness Chatting App with History 
+GenAI
+
+===== PAGE 35 =====
+
+AI Fitness Chatting App with History 
+GenAI
+
+===== PAGE 36 =====
+
+AI Fitness Chatting App with History 
+GenAI
+
+===== PAGE 37 =====
+
+Structured
+Output
+-
+GenAI
+
+===== PAGE 38 =====
+
+No Schema Enforcement in Prompt-Based Outputs
+You are an AI assistant that extracts structured information from user
+messages.
+Analyze the input text and return the output strictly in JSON format using
+the schema below.
+Required JSON Format:
+{
+  "issue": string,
+  "priority": "low" | "medium" | "high",
+  "category": string,
+  "requires_followup": boolean
+}
+Prompt
+GenAI
+
+===== PAGE 39 =====
+
+No Schema Enforcement in Prompt-Based Outputs
+Even with explicit instructions, there is:
+ ❌  No enforcement of format
+ ❌  No validation of fields
+ ❌  No guarantee of consistency
+GenAI
+
+===== PAGE 40 =====
+
+What is structured Output?
+When we say “structured output” by an LLM, it means
+instead of giving a free-form text answer, the model
+returns data in a machine-readable, organized format —
+usually JSON, key-value pairs, or something that follows a
+predefined schema.
+GenAI
+
+===== PAGE 41 =====
+
+Unstructured LLM Output
+Prompt →  LLM
+What is the weather in New York today?
+LLM →  Response
+The weather in New York today is 18°C with light rain and winds around
+12 km/h.
+GenAI
+
+===== PAGE 42 =====
+
+Structured LLM Output
+Prompt →  LLM
+What is the weather in New York today? 
+Return the answer strictly in 
+JSON format with the following fields:
+- location (string)
+- temperature_celsius (number)
+- condition (string)
+- wind_speed_kmh (number)
+LLM →  Response
+{
+  "location": "New York",
+  "temperature_celsius": 18,
+  "condition": "light rain",
+  "wind_speed_kmh": 12
+}
+GenAI
+
+===== PAGE 43 =====
+
+TypeDict
+GenAI
+
+===== PAGE 44 =====
+
+TypeDict Schema to LLM →  1
+GenAI
+
+===== PAGE 45 =====
+
+TypeDict Schema to LLM →  2
+GenAI
+
+===== PAGE 46 =====
+
+Pydantic
+GenAI
+
+===== PAGE 47 =====
+
+Pydantic Schema to LLM
+GenAI
+
+===== PAGE 48 =====
+
+Pydantic Schema to LLM
+GenAI
+
+===== PAGE 49 =====
+
+Output Parsers
+-
+GenAI
+
+===== PAGE 50 =====
+
+What are parsers?
+In LangChain, an output parser is a component that takes
+the raw text output from an LLM or chat model and
+converts it into a structured format (e.g. JSON, Pydantic,
+etc.).
+We will explore following output parsers
+stroutputparser
+jsonoutputparser
+pydanticoutputparser
+GenAI
+
+===== PAGE 51 =====
+
+stroutputparser →  part 1
+GenAI
+
+===== PAGE 52 =====
+
+stroutputparser →  part 2
+GenAI
+
+
+===== PAGE 53 =====
+
+jsonoutputparser →  part 1
+GenAI
+
+===== PAGE 54 =====
+
+jsonoutputparser →  part 2
+GenAI
+
+===== PAGE 55 =====
+
+jsonoutputparser →  part 3
+GenAI
+
+===== PAGE 56 =====
+
+pydanticoutputparser →  part 1
+GenAI
+
+===== PAGE 57 =====
+
+pydanticoutputparser →  part 2
+GenAI
+
+===== PAGE 58 =====
+
+pydanticoutputparser →  part 3
+GenAI
+
+===== PAGE 59 =====
+
+pydanticoutputparser →  part 4
+GenAI
+
+===== PAGE 60 =====
+
+Use Case
+-
+GenAI
+
+===== PAGE 61 =====
+
+AI Loan Application Risk Analyzer
+GenAI
+Business Problem:
+Modern banks and fintech companies receive thousands of loan
+applications daily.
+Each application contains:
+Income details
+Employment history
+Credit report summary
+Loan amount requested
+
+===== PAGE 62 =====
+
+AI Loan Application Risk Analyzer
+GenAI
+Traditionally, human officers manually review applications — which
+is:
+Time-consuming
+Expensive
+Inconsistent
+Not scalable
+To automate and scale this process, the bank integrates an LLM-
+based Risk Assessment System.
+
+===== PAGE 63 =====
+
+AI Loan Application Risk Analyzer
+GenAI
+The LLM is required to return a structured JSON response:
+{
+  "risk_level": "Medium",
+  "risk_score": 62,
+  "recommended_action": "Manual Review",
+  "suggested_interest_rate": 11.5,
+  "income_stability": "High",
+  "creditworthiness": "Moderate"
+}
+
+===== PAGE 64 =====
+
+Code WalkThrough
+GenAI
+
+===== PAGE 65 =====
+
+Code WalkThrough
+GenAI
+
+===== PAGE 66 =====
+
+Code WalkThrough
+GenAI
+
+===== PAGE 67 =====
+
+Code WalkThrough
+GenAI
+
+===== PAGE 68 =====
+
+Code WalkThrough
+GenAI
+
+===== PAGE 69 =====
+
+Output
+GenAI
+
+===== PAGE 70 =====
+
+End of Class
+-
+GenAI

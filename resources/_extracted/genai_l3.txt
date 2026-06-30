@@ -1,0 +1,277 @@
+
+
+===== PAGE 1 =====
+
+Runnables, Chains,
+Retrivers & RAG
+muhammadosama.hq@gmail.com-
+Module - 2
+GenAI
+
+===== PAGE 2 =====
+
+Topics to be Covered
+RunnableSequence
+RunnableParallel
+RunnablePassthrough
+RunnableLambda
+RunnableBranch
+LCEL
+LLM Grounding
+GenAI
+
+===== PAGE 3 =====
+
+Runnables & Chains
+GenAI
+
+===== PAGE 4 =====
+
+What is Chain?
+In LangChain, a chain is a sequence of calls.
+GenAI
+
+===== PAGE 5 =====
+
+What are Runnables?
+In LangChain, a Runnable is the base interface for any
+component that can be executed (run) in a chain.
+Runnable is a base interface,
+If you’re a Runnable, you must support at least .invoke(),
+.batch(), and .stream().
+GenAI
+
+===== PAGE 6 =====
+
+Runnable Primitives
+Most Usable runnable primitives are given below:
+RunnableSequence
+RunnableParallel
+RunnablePassthrough
+RunnableLambda
+RunnableBranch
+GenAI
+
+===== PAGE 7 =====
+
+RunnableSequence
+GenAI
+
+===== PAGE 8 =====
+
+LCEL
+-
+GenAI
+
+===== PAGE 9 =====
+
+What is LCEL?
+LCEL stands for LangChain Expression
+Language.
+It is a way to build GenAI pipelines in a
+declarative, composable, and chainable manner
+using operators like “|”
+GenAI
+
+===== PAGE 10 =====
+
+Declarative Analogy
+GenAI
+
+===== PAGE 11 =====
+
+Example
+GenAI
+
+===== PAGE 12 =====
+
+RunnableParallel
+GenAI
+
+===== PAGE 13 =====
+
+RunnablePassthrough
+GenAI
+
+===== PAGE 14 =====
+
+RunnableLambda →  part 1
+GenAI
+
+===== PAGE 15 =====
+
+RunnableLambda →  part 2
+GenAI
+
+===== PAGE 16 =====
+
+RunnableBranch →  part 1
+GenAI
+
+===== PAGE 17 =====
+
+RunnableBranch →  part 2
+GenAI
+
+===== PAGE 18 =====
+
+Task 1
+Design a system that will take user input and return the response based
+on following conditions:
+If the query contains a question mark "?", sends it to question-answer
+chain.
+Otherwise, sends it to another summarization chain.
+GenAI
+
+===== PAGE 19 =====
+
+Task 2
+A txt file with multiple emails are given summarize them differently
+based on topic sales, HR, finance
+Follow Intructions:
+Classify topic (sales, HR, finance)
+Use different summarizer depending on topic
+print summary
+GenAI
+
+===== PAGE 20 =====
+
+Task 3
+Input a Python code snippet, Explain what it does, find bugs, and
+suggest improvements.
+Follow Intructions:
+Runnable 1: Explain code
+Runnable 2: Detect logical or syntax errors
+Runnable 3: Suggest improvements
+RunnableParallel →  Execute all together
+GenAI
+
+===== PAGE 21 =====
+
+LLM Grounding
+-
+GenAI
+
+===== PAGE 22 =====
+
+What is LLM grounding?
+Anchoring an LLM’s responses to real, external data so answers are
+factual, relevant, and reliable.
+Why use it?
+To reduce hallucinations, improve accuracy, and build user trust.
+When to use it?
+When answers must be up-to-date, verifiable, or based on private data.
+GenAI
+
+===== PAGE 23 =====
+
+Exercise: Grounded LLM for History Assistant
+An AI-powered history assistant for the general public.
+The assistant answers historical questions using
+neutral, factual, and verifiable information from trusted
+public sources.
+GenAI
+
+===== PAGE 24 =====
+
+Mind Mapping of the Exercise
+Step 1: Ungrounded Prompt 
+Ask ChatGPT:
+“Explain the causes of the Indo-Pak partition.”
+and Observe Response
+GenAI
+
+===== PAGE 25 =====
+
+Mind Mapping of the Exercise
+Step 2: Grounded Prompt (This time ask with given article grounding)
+“Explain the causes of the Indo-Pak partition.”
+GenAI
+
+===== PAGE 26 =====
+
+Retriver
+-
+GenAI
+
+===== PAGE 27 =====
+
+What is Retriver?
+A Retriever is a component that fetches the most relevant
+documents of data in response to a user query so that an LLM
+can generate an accurate answer.
+GenAI
+
+===== PAGE 28 =====
+
+Wikipedia Retriver →  1
+GenAI
+
+===== PAGE 29 =====
+
+Wikipedia Retriver →  2
+GenAI
+
+===== PAGE 30 =====
+
+Wikipedia Retriver →  3
+GenAI
+
+===== PAGE 31 =====
+
+Wikipedia Retriver →  4
+GenAI
+
+===== PAGE 32 =====
+
+RAG
+-
+GenAI
+
+===== PAGE 33 =====
+
+RAG
+R e t r i e v a l - A u g m e n t e d  G e n e r a t i o n
+( R A G )  i s  a  t e c h n i q u e  t h a t  c o m b i n e s
+i n f o r m a t i o n  r e t r i e v a l  w i t h  l a r g e
+l a n g u a g e  m o d e l s .
+Key Benefits
+More accurate and up-to-date
+answers
+Reduced hallucinations
+Easier to verify and cite sources
+GenAI
+
+===== PAGE 34 =====
+
+Use Case: AI History Assistant
+An AI-powered history assistant for the general public.
+The assistant answers historical questions using
+wikipedia as verified public source
+GenAI
+
+===== PAGE 35 =====
+
+Code Walkthrough →  1
+GenAI
+
+===== PAGE 36 =====
+
+Code Walkthrough →  2
+GenAI
+
+===== PAGE 37 =====
+
+Code Walkthrough →  3
+GenAI
+
+===== PAGE 38 =====
+
+Code Walkthrough →  4
+GenAI
+
+===== PAGE 39 =====
+
+End of Class
+-
+GenAI

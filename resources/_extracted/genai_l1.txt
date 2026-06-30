@@ -1,0 +1,591 @@
+
+
+===== PAGE 1 =====
+
+GenAI
+Fundamentals of GenAI
+muhammadosama.hq@gmail.com-
+Module - 2
+
+===== PAGE 2 =====
+
+What is Artificial Intelligence (AI)?
+Artificial intelligence is the capability of computational
+systems to perform tasks typically associated with human
+intelligence, such as learning, reasoning, problem-solving,
+perception, and decision-making.
+Source: wikipedia
+Artificial intelligence is the branch of Computer Science
+GenAI
+
+===== PAGE 3 =====
+
+GenAI
+
+===== PAGE 4 =====
+
+Datasets are large collections of information that AI
+systems use to learn. They can include things like images,
+paragraphs of text, or even numbers from sensors.
+Training is the process of feeding data to a model so it can
+learn from it.
+Model is a program that has been trained on a dataset
+Basics of AI
+GenAI
+
+===== PAGE 5 =====
+
+What is Generative Artificial
+Intelligence (GenAI)?
+GenAI
+
+===== PAGE 6 =====
+
+GenAI:
+Generative AI, sometimes called gen AI, is artificial
+intelligence (AI) that can create original content such as
+text, images, video, audio or software code in response to
+a user’s prompt or request.
+Source: IBM
+GenAI
+
+===== PAGE 7 =====
+
+Difference between
+Discriminative & Generative
+Models 
+GenAI
+
+===== PAGE 8 =====
+
+Discriminative Models
+D i s c r i m i n a t i v e  m o d e l s  a r e   
+d e s i g n e d  t o  d i s c r i m i n a t e
+b e t w e e n  v a l u e s  o f  t h e
+o u t c o m e .
+GenAI
+
+===== PAGE 9 =====
+
+Discriminative Model Example
+GenAI
+
+===== PAGE 10 =====
+
+Generative Models
+Generative models are
+designed to create new
+data that is similar to its
+training data.
+GenAI
+
+===== PAGE 11 =====
+
+Generative Model Example
+GenAI
+
+===== PAGE 12 =====
+
+Discriminative & Generative Models
+GenAI
+
+===== PAGE 13 =====
+
+Real World AI Applications
+Can you tell which of these apps just discriminate and which actually create?
+Gmail Spam Classification
+ChatGPT
+Midjourney
+Mobile Face Recognition Lock
+YouTube Video Recommendations
+Google Translate
+Netflix Movie Rating Prediction
+Gmail AutoComplete
+GenAI
+
+===== PAGE 14 =====
+
+Pre-Trained Model
+A pretrained model is a machine learning model that has
+been previously trained on a large dataset.
+Fine-Tuned Model
+A pre-trained model that is further trained on a smaller,
+task-specific dataset.
+GenAI
+
+===== PAGE 15 =====
+
+A  f o u n d a t i o n  m o d e l  i s  a  l a r g e - s c a l e  A I  m o d e l
+t r a i n e d  o n  m a s s i v e  a n d  d i v e r s e  d a t a s e t s  t h a t
+c a n  b e  a d a p t e d  t o  a  w i d e  r a n g e  o f
+d o w n s t r e a m  t a s k s  t h r o u g h  f i n e - t u n i n g  o r
+p r o m p t i n g .  
+Foundation Model
+GenAI
+
+===== PAGE 16 =====
+
+Foundation 
+Model
+GenAI
+
+===== PAGE 17 =====
+
+Examples of  Foundation Models
+BERT
+GPT
+Stable Diffusion
+Claude 3.5 Sonnet
+Amazon Nova
+GenAI
+
+===== PAGE 18 =====
+
+Categories of Foundational Models
+Large Language Models
+Vision Language Models
+Multimodal Large Language Models
+GenAI
+
+===== PAGE 19 =====
+
+Introduction To LLM:
+A large language model (LLM) is a type of artificial
+intelligence that uses machine learning techniques to
+understand and generate human language.
+Source: Redhat
+GenAI
+
+===== PAGE 20 =====
+
+Examples of  LLMs
+GPT-1 (2018)
+BERT (2018)
+GPT-2 (2019)
+GPT-3 (2020)
+T5 (Google, 2020)
+GPT-3.5 (2022)
+PaLM (2022)
+LLaMA 1 (2023)
+GPT-4 (2023)
+Claude 3 (2024)
+GenAI
+
+===== PAGE 21 =====
+
+What is VLM(Vision LanguageModel)?
+A  V i s i o n - L a n g u a g e  M o d e l  i s  a n  A I  m o d e l  t h a t
+c a n  u n d e r s t a n d  b o t h  i m a g e s  a n d  t e x t
+t o g e t h e r .
+Examples:
+GPT-4o (OpenAI)
+GPT-4V (Vision)
+Google Gemini Vision
+Claude 3 Opus / Sonnet (Vision)
+GenAI
+
+===== PAGE 22 =====
+
+What is Multimodal LLM?
+A  f o u n d a t i o n a l  l a n g u a g e  m o d e l  t h a t  c a n
+u n d e r s t a n d  a n d  p r o c e s s  m o r e  t h a n  o n e  t y p e
+o f  i n p u t  ( m o d e ) .
+GenAI
+
+===== PAGE 23 =====
+
+Let’s Make First LLM Call
+GenAI
+
+===== PAGE 24 =====
+
+First LLM Call
+GenAI
+
+===== PAGE 25 =====
+
+First LLM Based Application
+GenAI
+
+===== PAGE 26 =====
+
+Code Generation Application
+GenAI
+
+===== PAGE 27 =====
+
+Introduction to
+LangChain
+-
+GenAI
+
+===== PAGE 28 =====
+
+What is Langchain?
+LangChain is a framework for developing
+applications powered by large language
+models (LLMs).
+Source: LangChain
+GenAI
+
+===== PAGE 29 =====
+
+Langchain Packeges
+langchain-core
+langchain
+Integration packages (like, langchain-openai, langchain-anthropic)
+langchain-community
+LangChain is a framework that consists of a
+number of packages.
+GenAI
+
+===== PAGE 30 =====
+
+Advantages of Langchain
+Efficient Pipeline (Chains)
+Model Agnostic (Plug & Play)
+Huge Community 
+GenAI
+
+===== PAGE 31 =====
+
+Langchain Core Components
+Model
+Prompt
+Messages
+Chains (Runnables)
+Tool
+GenAI
+
+===== PAGE 32 =====
+
+Closed Source
+LLMs
+-
+GenAI
+
+===== PAGE 33 =====
+
+OpenAI LLM Model
+GenAI
+
+===== PAGE 34 =====
+
+OpenAI ChatModel
+GenAI
+
+===== PAGE 35 =====
+
+Difference between LLM and Chat Model
+GenAI
+
+===== PAGE 36 =====
+
+Prompts
+Prompts are input to the llm.
+List sample prompts:
+Summarize this paragraph in 3 sentences.
+Translate this sentence into Urdu: I love learning AI.
+List 5 benefits of regular exercise.
+What is the capital of Pakistan?
+Who developed the theory of relativity?
+Compose a funny poem about coffee.
+GenAI
+
+===== PAGE 37 =====
+
+Tokens
+Website: https://platform.openai.com/tokenizer
+GenAI
+
+===== PAGE 38 =====
+
+Temperature Param
+It just controls the randomness of output Tokens
+GenAI
+
+===== PAGE 39 =====
+
+Use Case:
+A student is studying geography and needs a clear,
+factual answer for homework.
+GenAI
+
+===== PAGE 40 =====
+
+Code Walkthrough
+GenAI
+
+===== PAGE 41 =====
+
+Use Case:
+A children's book publisher wants charming ideas for a
+new story about space animals.
+GenAI
+
+===== PAGE 42 =====
+
+Code Walkthrough
+GenAI
+
+===== PAGE 43 =====
+
+init_chat_model
+GenAI
+
+===== PAGE 44 =====
+
+Context Window
+The context window of an LLM (Large Language Model)
+is the total number of tokens the model can remember at
+once. 
+Example
+Model: GPT ‑ 3.5
+Context window: 4,096 tokens
+GenAI
+
+===== PAGE 45 =====
+
+Hallucination Problem Hallucinate
+GenAI
+
+===== PAGE 46 =====
+
+Knowledge Cut Off
+GenAI
+
+===== PAGE 47 =====
+
+Memory
+In LangChain, memory means your app can remember
+what was said earlier in the conversation instead of
+forgetting everything after each question.
+Example:
+You: “My name is Osama.”
+Later: “What’s my name?”
+GenAI
+
+===== PAGE 48 =====
+
+Chains
+In LangChain, a chain is simply a pipeline of calls where:
+The output of one step becomes the input to the next.
+You can connect multiple components (models, prompts,
+tools, retrievers, etc.) into a workflow.
+GenAI
+
+===== PAGE 49 =====
+
+Exercise with Temperature Param
+In this exercise, you will explore how the temperature parameter in
+LangChain affects the creativity and randomness of model outputs.
+1.Use the ChatOpenAI model from LangChain.
+2.Run the same prompt with the following temperature values: 0, 1, 1.5,
+and 2.
+3.For each temperature value, run the prompt twice and record the
+responses.
+4.Compare the differences across temperatures.
+GenAI
+
+===== PAGE 50 =====
+
+Sample Prompts
+“What is the capital of Japan?”
+“How many continents are there on Earth?”
+“Convert 100 USD to Pakistani Rupees (approximate).”
+“Who was the first person to walk on the moon?”
+“What is the chemical symbol for water?”
+“What is 456 × 23?”
+“What year did World War II end?”
+Following are the prompts that are required realistic
+response
+GenAI
+
+===== PAGE 51 =====
+
+Sample Prompts
+“Imagine humans could fly — describe a normal day in that world.”
+“Create a short dialogue between the Moon and the Sun.”
+“Invent a new fairy tale creature and explain its powers.”
+“Describe a futuristic city in the year 2500.”
+“If sadness were a color, how would you describe it?”
+“Invent a new flavor of ice cream and explain why people would love it.”
+“Design a chair that could be used in zero gravity.”
+“Imagine a smartphone for dogs — what features would it have?”
+Following are the prompts that are required creative
+response
+GenAI
+
+===== PAGE 52 =====
+
+Chat Model - Anthropic
+GenAI
+
+===== PAGE 53 =====
+
+Module Versioning Concept 
+GenAI
+
+===== PAGE 54 =====
+
+Chat Model - Gemini
+GenAI
+
+===== PAGE 55 =====
+
+Cons of Closed Sourced LLM
+API Charges
+Data Privacy
+No Fine Tuning Support
+GenAI
+
+===== PAGE 56 =====
+
+Open Source
+LLMs
+-
+GenAI
+
+===== PAGE 57 =====
+
+Hugging Face Models
+GenAI
+
+===== PAGE 58 =====
+
+LLM Call
+Methods
+-
+GenAI
+
+===== PAGE 59 =====
+
+LLM Calls Methods
+In langchain there are 3 invovation methods:
+Invoke
+Batch
+Stream
+GenAI
+
+===== PAGE 60 =====
+
+Invoke
+GenAI
+The most straightforward way to call a model is to
+use invoke() with a single message or a list of
+messages.
+
+===== PAGE 61 =====
+
+Invoke – Code - Example 1
+GenAI
+
+===== PAGE 62 =====
+
+Invoke – Code - Example 2
+GenAI
+
+===== PAGE 63 =====
+
+Batch
+GenAI
+Batching a collection of independent requests to a
+model can significantly improve performance and
+reduce costs, as the processing can be done in
+parallel
+
+===== PAGE 64 =====
+
+Batch – Code →  1
+GenAI
+
+===== PAGE 65 =====
+
+Batch – Code →  2
+GenAI
+
+===== PAGE 66 =====
+
+Stream
+GenAI
+Most models can stream their output content while
+it is being generated. By displaying output
+progressively, streaming significantly improves user
+experience, particularly for longer responses.
+
+===== PAGE 67 =====
+
+Stream – Code - Example 1
+GenAI
+
+===== PAGE 68 =====
+
+Stream – Code - Example 2
+GenAI
+
+===== PAGE 69 =====
+
+Use Case
+-
+GenAI
+
+===== PAGE 70 =====
+
+Real Time Conversational Assistant
+GenAI
+This application is a terminal-based real-time AI assistant that enables
+users to interact dynamically with an intelligent system. It accepts user
+input directly from the terminal and generates token-by-token streaming
+responses, creating a natural, human-like conversational experience with
+minimal latency.
+Application Flow:
+1.The user enters a query through the terminal.
+2.The system processes the input using an LLM.
+3.The response is streamed instantly to the console in real time.
+
+===== PAGE 71 =====
+
+Code WalkThrough →  1
+GenAI
+
+===== PAGE 72 =====
+
+Code WalkThrough →  2
+GenAI
+
+===== PAGE 73 =====
+
+Code WalkThrough →  3
+GenAI
+
+===== PAGE 74 =====
+
+Integerate UI
+-
+GenAI
+
+===== PAGE 75 =====
+
+Code WalkThrough →  1
+GenAI
+
+===== PAGE 76 =====
+
+Code WalkThrough →  2
+GenAI
+
+===== PAGE 77 =====
+
+Code WalkThrough →  3
+GenAI
+
+===== PAGE 78 =====
+
+Code WalkThrough →  4
+GenAI
+
+===== PAGE 79 =====
+
+End of Class
+-
+GenAI

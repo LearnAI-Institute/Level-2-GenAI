@@ -1,0 +1,439 @@
+
+
+===== PAGE 1 =====
+
+Chunking, Embeddings,
+VectorDB & Tools
+muhammadosama.hq@gmail.com-
+Module - 2
+GenAI
+
+===== PAGE 2 =====
+
+Topics to be Covered
+Data Loaders
+Splitters
+Embeddings Model
+Vector Database
+Tools
+GenAI
+
+===== PAGE 3 =====
+
+RAG on Custom
+Knowledge Base
+GenAI
+
+===== PAGE 4 =====
+
+RAG ArchitectureGenAI
+
+===== PAGE 5 =====
+
+Data Loaders
+GenAI
+
+===== PAGE 6 =====
+
+What is Data Loader?
+In LangChain, It is a component to load the data.
+GenAI
+
+===== PAGE 7 =====
+
+Text Loader
+GenAI
+
+===== PAGE 8 =====
+
+PDF Loader
+GenAI
+
+===== PAGE 9 =====
+
+Upload A Directory – PDF
+GenAI
+
+===== PAGE 10 =====
+
+Upload A Directory – Markdown →  1
+GenAI
+
+===== PAGE 11 =====
+
+Upload A Directory – Markdown →  2
+GenAI
+
+===== PAGE 12 =====
+
+Chunking
+GenAI
+
+===== PAGE 13 =====
+
+What is Chunking?
+Chunking means breaking a large piece of text into
+smaller, manageable pieces called chunks.
+GenAI
+
+===== PAGE 14 =====
+
+Chunking Visualization
+GenAI
+
+===== PAGE 15 =====
+
+Why Chunking?
+Following are the reasons due to we
+implement chunking:
+More relevant retrieval
+Better LLM context
+GenAI
+
+===== PAGE 16 =====
+
+Case Study: Impact of Improper Chunking
+GenAI
+
+===== PAGE 17 =====
+
+Chunking Strategies
+Following are the chunking strategies that we will explore:
+Text-based Chunking
+Document-based Chunking
+Contextual Chunking by Anthropic
+To Learn More About Chunking Strategies (Splitters) in Langchain Visit:
+https://docs.langchain.com/oss/python/integrations/splitters
+ 
+GenAI
+
+===== PAGE 18 =====
+
+Text-based Chunking →  RecursiveCharacterTextSplitter
+GenAI
+
+===== PAGE 19 =====
+
+Text-based Chunking →  RecursiveCharacterTextSplitter
+GenAI
+
+===== PAGE 20 =====
+
+Document-based Chunking →  Language Splitter
+GenAI
+
+===== PAGE 21 =====
+
+Document-based Chunking →  Language Splitter
+GenAI
+
+===== PAGE 22 =====
+
+Embeddings
+GenAI
+
+===== PAGE 23 =====
+
+What are Embeddings?
+Embeddings are numerical representations of text (or
+other data like images, audio, etc.) in a high-dimensional
+vector space.
+GenAI
+
+===== PAGE 24 =====
+
+Embeddings Representation
+GenAI
+
+===== PAGE 25 =====
+
+Embeddings Model
+We will be using following embeddings model:
+text-embedding-3-large (Max Tokens: 8191)
+all-MiniLM-L6-v2 (Max Tokens: 256)
+GenAI
+
+===== PAGE 26 =====
+
+For More Embeddings Model
+Visit LeaderBoard: https://huggingface.co/spaces/mteb/leaderboard
+GenAI
+
+===== PAGE 27 =====
+
+OpenAI Embeddings Model: text-embedding-3-large
+For Single Query Embeddings
+GenAI
+
+===== PAGE 28 =====
+
+OpenAI Embeddings Model: text-embedding-3-large
+For Multiple Documents Embeddings
+GenAI
+
+===== PAGE 29 =====
+
+SentanceTransformers Embeddings Model: all-mpnet-base-v2
+For Single Query Embeddings
+GenAI
+
+===== PAGE 30 =====
+
+For Multiple Documents Embeddings
+SentanceTransformers Embeddings Model: all-mpnet-base-v2
+GenAI
+
+===== PAGE 31 =====
+
+Vector Database
+GenAI
+
+===== PAGE 32 =====
+
+What is VectorDB?
+A Vector Database (Vector DB) is a database optimized
+for storing and querying vector embeddings instead of
+traditional rows/columns.
+GenAI
+
+===== PAGE 33 =====
+
+Embedings Representation in VectorDB
+GenAI
+
+===== PAGE 34 =====
+
+Similarity Search Algorithm
+There are few similarity search algorithms but Cosine
+Similarity is best
+GenAI
+
+===== PAGE 35 =====
+
+Optimizing Similarity Search
+Most of the VectorDB uses Hierarchical Navigable Small
+World graph (HNSW) algorithm for better similarity search.
+Why do we need Optimizing Similarity Search?
+If there are one million data vectors, there will be one million similarity
+calculations, and the most similar data vectors will be returned as the
+result. However, when dealing with millions or billions of records, this can
+severely impact performance due to the large number of calculations
+and memory required.
+GenAI
+
+===== PAGE 36 =====
+
+Hierarchical Navigable Small World graph (HNSW)
+This optimization combines two different methods: 
+1. Probability Skip List 
+2. Navigable Small World Graph. 
+It creates a multi-layer graph from the given data, which
+helps the algorithm quickly find approximate nearest
+neighbors.
+GenAI
+
+===== PAGE 37 =====
+
+Hierarchical Navigable Small World graph (HNSW)
+GenAI
+
+===== PAGE 38 =====
+
+Benifits Of VectorDB Over Traditional Databases
+There are two main benifits of using VectorDB:
+Fast Retrieval
+Optimized Storage
+GenAI
+
+===== PAGE 39 =====
+
+ChromaDB - Create Instance
+GenAI
+
+===== PAGE 40 =====
+
+CRUD Operations on
+VectorDB
+GenAI
+
+===== PAGE 41 =====
+
+ChromaDB - Add Documents →  1
+GenAI
+
+===== PAGE 42 =====
+
+ChromaDB - Add Documents →  2
+GenAI
+
+===== PAGE 43 =====
+
+ChromaDB - Update Documents →  1
+GenAI
+
+===== PAGE 44 =====
+
+ChromaDB - Update Documents →  1
+GenAI
+
+===== PAGE 45 =====
+
+ChromaDB - Delete Documents
+GenAI
+
+===== PAGE 46 =====
+
+ChromaDB - Search Upon Query
+GenAI
+
+===== PAGE 47 =====
+
+ChromaDB - Search Upon Query with Score
+To Learn More About VectorDBs Integeration in Langchain Visit:
+https://docs.langchain.com/oss/python/integrations/vectorstores 
+GenAI
+
+===== PAGE 48 =====
+
+Exercise 
+Do this exercise using an open-source embedding model from Hugging
+Face. Use different documents and queries to test similarity search.
+1.Choose a small open-source embedding model (e.g., "sentence-
+transformers/all-MiniLM-L6-v2").
+2.Create a new set of documents (e.g., Pakistani cities, historical
+places, or favorite sports).
+3.Write a query and find the most relevant document using cosine
+similarity.
+4.Print the query, top document, and similarity score.
+GenAI
+
+===== PAGE 49 =====
+
+Use Case:  Smart Product Assistant
+Goal: An AI chatbot that answers user questions
+directly from official product manuals using Retrieval-
+Augmented Generation (RAG).
+Purpose and benefit: Enhance user experience
+GenAI
+
+===== PAGE 50 =====
+
+Use Case: Architecture DiagramGenAI
+
+===== PAGE 51 =====
+
+Tools
+GenAI
+
+===== PAGE 52 =====
+
+What is Tool?
+A tool is just a python function that LLM can understand
+and call when needed
+Why do we need Tools?
+As LLMs can’t perform actions so, tools enable LLMs to
+perform actions
+GenAI
+
+===== PAGE 53 =====
+
+Tools 
+GenAI
+
+===== PAGE 54 =====
+
+Types of Tools in Langchain
+There are two kinds of tools support in langchain, as
+follows:
+Built-in Tool
+Custom Tool
+GenAI
+
+===== PAGE 55 =====
+
+Built-in Tool
+LangChain provides built-in tools to let LLMs interact with
+real systems.
+Some of them are below:
+DuckDuckGo
+ ShellTool 
+ PythonREPLTool 
+Explore more tools: 
+https://docs.langchain.com/oss/python/integrations/tools
+GenAI
+
+===== PAGE 56 =====
+
+Built-in Tool - DuckDuckGo Search
+GenAI
+
+===== PAGE 57 =====
+
+Built-in Tool - DuckDuckGo Search - Multiple Results
+GenAI
+
+===== PAGE 58 =====
+
+Built-in Tool - ShellTool
+GenAI
+
+===== PAGE 59 =====
+
+Built-in Tool - PythonREPLTool
+GenAI
+
+===== PAGE 60 =====
+
+Custom Tool
+A custom tool is a tool that you define yourself
+When you will move to custom tool option?
+If you want to call your own API
+If you want to make your custom business logic
+GenAI
+
+===== PAGE 61 =====
+
+Custom Tool - Tool Decorator
+GenAI
+
+===== PAGE 62 =====
+
+Custom Tool - StructuredTool →  1
+GenAI
+
+===== PAGE 63 =====
+
+Custom Tool - StructuredTool →  2
+GenAI
+
+===== PAGE 64 =====
+
+Custom Tool - StructuredTool →  3
+GenAI
+
+===== PAGE 65 =====
+
+Tool-Augmented Chatbot 
+for 
+Imtiaz Super Store
+GenAI
+
+===== PAGE 66 =====
+
+Use Case: E-Commerce Personal Assistant
+Imtiaz Super Store wants to build an AI-powered shopping
+assistant that goes beyond chat and performs real business
+operations using live product data and customer loyalty
+information.
+This chatbot acts as a personal shopping assistant, helping users:
+Discover products
+Apply loyalty points intelligently
+Get final, real-time pricing
+Check their loyalty balance
+GenAI
+
+===== PAGE 67 =====
+
+End of Class
+-
+GenAI
